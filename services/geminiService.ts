@@ -75,7 +75,7 @@ export const generateCareerAdvice = async (
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-3-pro-preview", // Upgraded model for better reasoning
       contents: {
         role: "user",
         parts: parts
@@ -88,10 +88,13 @@ export const generateCareerAdvice = async (
       }
     });
 
-    const responseText = response.text;
+    let responseText = response.text;
     if (!responseText) {
       throw new Error("No response received from AI.");
     }
+
+    // Sanitize JSON output (remove Markdown code blocks if present)
+    responseText = responseText.replace(/```json\n?|```/g, '').trim();
 
     return JSON.parse(responseText) as CareerAdviceResponse;
 
