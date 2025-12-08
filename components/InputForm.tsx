@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx React.createElement */
-/** @jsxFrag React.Fragment */
 import React, { useState, useRef } from 'react';
 import { FileData } from '../types';
 import { Send, Paperclip, X, FileText } from 'lucide-react';

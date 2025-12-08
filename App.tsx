@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx React.createElement */
-/** @jsxFrag React.Fragment */
 import React, { useState } from 'react';
 import { Compass, Sparkles } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData } from './types';

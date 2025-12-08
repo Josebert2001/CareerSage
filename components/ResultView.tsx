@@ -1,6 +1,3 @@
-/** @jsxRuntime classic */
-/** @jsx React.createElement */
-/** @jsxFrag React.Fragment */
 import React, { useState } from 'react';
 import { CareerAdviceResponse, Pathway } from '../types';
 import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight } from 'lucide-react';
