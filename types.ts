@@ -1,3 +1,8 @@
+export interface Source {
+  title: string;
+  uri: string;
+}
+
 export interface Pathway {
   title: string;
   fitReason: string;
@@ -9,7 +14,15 @@ export interface Pathway {
   timeline: string;
   challenges: string[];
   actionSteps: string[];
+  // New Data Fields for Charts
   marketReality: string;
+  salaryRange: {
+    min: number;
+    max: number;
+    currency: string;
+  };
+  demandScore: number; // 0 to 100
+  growthScore: number; // 0 to 100
 }
 
 export interface CareerAdviceResponse {
@@ -21,6 +34,7 @@ export interface CareerAdviceResponse {
   practicalPathway: Pathway;
   growthPathway: Pathway;
   closingMessage: string;
+  sources?: Source[];
 }
 
 export interface FileData {

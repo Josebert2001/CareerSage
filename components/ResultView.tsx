@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CareerAdviceResponse, Pathway } from '../types';
-import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown } from 'lucide-react';
+import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface ResultViewProps {
   data: CareerAdviceResponse;
@@ -53,35 +54,124 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   );
 };
 
+// --- Custom Components for Charts ---
+
+const SalaryChart: React.FC<{ min: number; max: number; currency: string }> = ({ min, max, currency }) => {
+  const data = [
+    { name: 'Entry Level', amount: min },
+    { name: 'Experienced', amount: max },
+  ];
+
+  return (
+    <div className="h-48 w-full mt-4">
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+          <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+          <YAxis hide />
+          <Tooltip 
+            cursor={{fill: '#f1f5f9'}}
+            contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'}}
+            formatter={(value: number) => [`${currency} ${value.toLocaleString()}`, 'Salary']}
+          />
+          <Bar dataKey="amount" radius={[4, 4, 0, 0]} barSize={40}>
+            <Cell fill="#34d399" />
+            <Cell fill="#059669" />
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+const DemandGauge: React.FC<{ score: number }> = ({ score }) => {
+  // Score 0-100
+  const color = score > 75 ? "bg-emerald-500" : score > 40 ? "bg-amber-500" : "bg-red-500";
+  const text = score > 75 ? "High Demand" : score > 40 ? "Moderate" : "Low Demand";
+  
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex justify-between text-xs font-medium text-slate-500 uppercase">
+        <span>Saturation</span>
+        <span>High Growth</span>
+      </div>
+      <div className="h-3 w-full bg-slate-100 rounded-full overflow-hidden">
+        <div 
+          className={`h-full ${color} transition-all duration-1000 ease-out`} 
+          style={{ width: `${score}%` }}
+        />
+      </div>
+      <div className="flex justify-end">
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${color} bg-opacity-10 text-slate-700`}>
+          {text} ({score}/100)
+        </span>
+      </div>
+    </div>
+  );
+};
+
+
 const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
   const [activeTab, setActiveTab] = useState<'practical' | 'growth'>('practical');
 
   const renderPathway = (pathway: Pathway, type: 'practical' | 'growth') => (
     <div className="animate-fadeIn space-y-6">
-      {/* Header Section */}
+      {/* Header Section with Dashboard Cards */}
       <div className={`p-6 rounded-2xl ${type === 'practical' ? 'bg-blue-50 border border-blue-100' : 'bg-purple-50 border border-purple-100'}`}>
-        <h3 className={`text-2xl font-bold mb-2 ${type === 'practical' ? 'text-blue-900' : 'text-purple-900'}`}>
-          {pathway.title}
-        </h3>
-        <p className="text-slate-700 leading-relaxed mb-4">{pathway.fitReason}</p>
-        
-        <div className="flex flex-wrap gap-3">
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
-            <Clock className="w-4 h-4 text-slate-500" />
-            <span className="text-sm font-medium text-slate-700">{pathway.timeline}</span>
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`text-xs font-bold uppercase tracking-wider px-2 py-1 rounded-md ${type === 'practical' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
+                {type === 'practical' ? 'Short Term Plan' : 'Long Term Vision'}
+              </span>
+            </div>
+            <h3 className={`text-2xl md:text-3xl font-bold ${type === 'practical' ? 'text-blue-900' : 'text-purple-900'}`}>
+              {pathway.title}
+            </h3>
           </div>
-          <div className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-full border border-slate-200 shadow-sm">
-            <TrendingUp className="w-4 h-4 text-slate-500" />
-            <span className="text-sm font-medium text-slate-700">Market: {pathway.marketReality}</span>
+        </div>
+
+        <p className="text-slate-700 leading-relaxed mb-6 bg-white/60 p-4 rounded-xl backdrop-blur-sm">
+          {pathway.fitReason}
+        </p>
+
+        {/* Data Dashboard Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          {/* Card 1: Market Stats */}
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+             <div className="flex items-center gap-2 mb-3 text-slate-500 font-medium">
+                <TrendingUp className="w-4 h-4" />
+                <span>Market Reality</span>
+             </div>
+             <DemandGauge score={pathway.demandScore} />
+             <p className="text-xs text-slate-400 mt-3">{pathway.marketReality}</p>
+          </div>
+
+          {/* Card 2: Salary Estimates */}
+          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+             <div className="flex items-center gap-2 mb-1 text-slate-500 font-medium">
+                <div className="text-sm">Est. Monthly Income</div>
+             </div>
+             <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold text-slate-800">
+                  {pathway.salaryRange.currency} {pathway.salaryRange.max.toLocaleString()}
+                </span>
+                <span className="text-xs text-slate-400">/mo (Senior)</span>
+             </div>
+             <SalaryChart 
+                min={pathway.salaryRange.min} 
+                max={pathway.salaryRange.max} 
+                currency={pathway.salaryRange.currency} 
+             />
           </div>
         </div>
       </div>
 
-      {/* Action Steps - Always visible for impact */}
+      {/* Action Steps - Prominent */}
       <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm ring-1 ring-emerald-50">
         <h4 className="flex items-center gap-2 font-semibold text-emerald-900 mb-4">
           <CheckCircle className="w-5 h-5 text-emerald-600" />
-          Immediate Action Steps
+          Start This Week
         </h4>
         <ul className="space-y-3">
           {pathway.actionSteps.map((step, i) => (
@@ -101,7 +191,6 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
           title="Required Skills" 
           icon={Target} 
           iconColor="text-emerald-600"
-          defaultOpen={true}
         >
           <div className="space-y-4">
             <div>
@@ -124,10 +213,14 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
         </AccordionItem>
 
         <AccordionItem 
-          title="Education & Learning" 
+          title="Education & Timeline" 
           icon={BookOpen} 
           iconColor="text-blue-600"
         >
+          <div className="mb-4 flex items-center gap-2 text-sm text-blue-700 bg-blue-50 px-3 py-2 rounded-lg">
+            <Clock className="w-4 h-4" />
+            <span>Expected Timeline: <strong>{pathway.timeline}</strong></span>
+          </div>
           <ul className="space-y-3">
             {pathway.educationOptions.map((opt, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
@@ -206,6 +299,27 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
 
         {activeTab === 'practical' ? renderPathway(data.practicalPathway, 'practical') : renderPathway(data.growthPathway, 'growth')}
       </div>
+
+      {/* Sources */}
+      {data.sources && data.sources.length > 0 && (
+        <div className="max-w-4xl mx-auto mb-8 animate-fadeIn">
+          <h4 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Sources & References</h4>
+          <div className="flex flex-wrap gap-3">
+            {data.sources.map((source, i) => (
+              <a 
+                key={i} 
+                href={source.uri} 
+                target="_blank" 
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 transition-colors"
+              >
+                <span className="truncate max-w-[150px]">{source.title}</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Closing */}
       <div className="bg-emerald-900 text-white rounded-2xl p-8 text-center relative overflow-hidden animate-fadeIn" style={{ animationDelay: '0.2s' }}>

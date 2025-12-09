@@ -1,47 +1,26 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { SYSTEM_PROMPT } from "../constants";
+import { ANALYSIS_PROMPT, RESEARCH_PROMPT } from "../constants";
 import { CareerAdviceResponse, FileData } from "../types";
 
 const apiKey = process.env.API_KEY;
 
-// Define the response schema strictly to match our UI needs
-const pathwaySchema: Schema = {
-  type: Type.OBJECT,
-  properties: {
-    title: { type: Type.STRING, description: "A catchy but descriptive title for this career path" },
-    fitReason: { type: Type.STRING, description: "Why this fits the student's profile and goals" },
-    requiredSkills: {
-      type: Type.OBJECT,
-      properties: {
-        technical: { type: Type.ARRAY, items: { type: Type.STRING } },
-        soft: { type: Type.ARRAY, items: { type: Type.STRING } }
-      }
-    },
-    educationOptions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "List of formal and informal learning options with cost context" },
-    timeline: { type: Type.STRING, description: "Realistic timeline breakdown (e.g., 0-6 months: X, 6-12 months: Y)" },
-    challenges: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Potential risks and obstacles" },
-    actionSteps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 immediate concrete steps for this week" },
-    marketReality: { type: Type.STRING, description: "Realistic outlook on income, job availability, and demand in their region" }
-  },
-  required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality"]
-};
-
-const adviceSchema: Schema = {
+// Schema for Step 1 (Analysis)
+const analysisSchema: Schema = {
   type: Type.OBJECT,
   properties: {
     studentProfile: {
       type: Type.OBJECT,
       properties: {
-        summary: { type: Type.STRING, description: "A brief summary of who the student is based on input" },
+        summary: { type: Type.STRING },
         keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } }
       }
     },
-    contextAnalysis: { type: Type.STRING, description: "Analysis of their educational background, resources, and local context" },
-    practicalPathway: pathwaySchema,
-    growthPathway: pathwaySchema,
-    closingMessage: { type: Type.STRING, description: "Encouraging closing remark reminding them the choice is theirs" }
+    contextAnalysis: { type: Type.STRING },
+    practicalPathTitle: { type: Type.STRING },
+    growthPathTitle: { type: Type.STRING },
+    reasoning: { type: Type.STRING }
   },
-  required: ["studentProfile", "contextAnalysis", "practicalPathway", "growthPathway", "closingMessage"]
+  required: ["studentProfile", "contextAnalysis", "practicalPathTitle", "growthPathTitle"]
 };
 
 export const generateCareerAdvice = async (
@@ -54,52 +33,97 @@ export const generateCareerAdvice = async (
 
   const ai = new GoogleGenAI({ apiKey });
 
-  const parts: any[] = [];
-  
-  // Add files if they exist
+  // --- STEP 1: The Counselor (Gemini 3 Pro) ---
+  // Purpose: Deep Reasoning & OCR
+  const analysisParts: any[] = [];
   if (files && files.length > 0) {
     files.forEach(file => {
-      parts.push({
-        inlineData: {
-          mimeType: file.mimeType,
-          data: file.data
-        }
+      analysisParts.push({
+        inlineData: { mimeType: file.mimeType, data: file.data }
       });
     });
   }
+  analysisParts.push({ text: `Student Scenario: ${textInput}` });
 
-  // Add text input
-  parts.push({
-    text: `Student Scenario: ${textInput}`
-  });
+  let analysisResult: any;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // Upgraded model for better reasoning
-      contents: {
-        role: "user",
-        parts: parts
-      },
+    const analysisResponse = await ai.models.generateContent({
+      model: "gemini-3-pro-preview", 
+      contents: { role: "user", parts: analysisParts },
       config: {
-        systemInstruction: SYSTEM_PROMPT,
+        systemInstruction: ANALYSIS_PROMPT,
         responseMimeType: "application/json",
-        responseSchema: adviceSchema,
-        temperature: 0.7, // Slightly creative but grounded
+        responseSchema: analysisSchema,
+        temperature: 0.5,
       }
     });
 
-    let responseText = response.text;
-    if (!responseText) {
-      throw new Error("No response received from AI.");
+    const cleanJson = analysisResponse.text ? analysisResponse.text.replace(/```json\n?|```/g, '').trim() : "{}";
+    analysisResult = JSON.parse(cleanJson);
+  } catch (e) {
+    console.error("Step 1 Analysis Failed", e);
+    throw new Error("Failed to analyze profile.");
+  }
+
+  // --- STEP 2: The Researcher (Gemini 2.5 Flash) ---
+  // Purpose: Search Grounding & Data Gathering
+  const researchPromptFormatted = RESEARCH_PROMPT
+    .replace("[INSERT_PRACTICAL_TITLE]", analysisResult.practicalPathTitle)
+    .replace("[INSERT_GROWTH_TITLE]", analysisResult.growthPathTitle);
+
+  const researchParts = [{
+    text: `
+      CONTEXT FROM STEP 1:
+      Student Profile: ${JSON.stringify(analysisResult.studentProfile)}
+      Context: ${analysisResult.contextAnalysis}
+      
+      GENERATE FULL ADVICE NOW.
+    `
+  }];
+
+  try {
+    const researchResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash", // Flash is best for Search tools
+      contents: { role: "user", parts: researchParts },
+      config: {
+        systemInstruction: researchPromptFormatted,
+        // Strict JSON schema is NOT supported with Search tool, so we rely on prompt engineering + manual parse
+        tools: [{ googleSearch: {} }], 
+        temperature: 0.3, 
+      }
+    });
+
+    let finalText = researchResponse.text || "{}";
+    // Sanitize
+    finalText = finalText.replace(/```json\n?|```/g, '').trim();
+    // Sometimes the model adds text before the JSON in search mode, try to find the first { and last }
+    const firstBrace = finalText.indexOf('{');
+    const lastBrace = finalText.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1) {
+      finalText = finalText.substring(firstBrace, lastBrace + 1);
     }
 
-    // Sanitize JSON output (remove Markdown code blocks if present)
-    responseText = responseText.replace(/```json\n?|```/g, '').trim();
+    const finalData = JSON.parse(finalText) as CareerAdviceResponse;
 
-    return JSON.parse(responseText) as CareerAdviceResponse;
+    // Extract sources
+    const sources = researchResponse.candidates?.[0]?.groundingMetadata?.groundingChunks
+      ?.map((chunk: any) => ({
+        title: chunk.web?.title || "Reference",
+        uri: chunk.web?.uri || ""
+      }))
+      .filter((s: any) => s.uri !== "");
+
+    // Merge the Step 1 deep profile (which might be better) with Step 2 data if Step 2 was lazy
+    if (!finalData.studentProfile || finalData.studentProfile.summary.length < 10) {
+        finalData.studentProfile = analysisResult.studentProfile;
+    }
+    finalData.sources = sources;
+
+    return finalData;
 
   } catch (error) {
-    console.error("Gemini API Error:", error);
+    console.error("Step 2 Research Failed", error);
     throw error;
   }
 };
