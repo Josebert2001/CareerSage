@@ -1,11 +1,19 @@
+
 import React, { useState, useRef } from 'react';
 import { FileData } from '../types';
-import { Send, Paperclip, X, FileText, Camera, Image as ImageIcon } from 'lucide-react';
+import { Send, X, FileText, Camera, Sparkles } from 'lucide-react';
 
 interface InputFormProps {
   onSubmit: (text: string, files: FileData[]) => void;
   isLoading: boolean;
 }
+
+const SUGGESTIONS = [
+  "I'm in SS3, good at Art but parents want Law.",
+  "I studied Biochemistry but want to switch to Tech.",
+  "I need a job that pays while I study.",
+  "I failed JAMB and don't know what to do next.",
+];
 
 const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
   const [text, setText] = useState('');
@@ -50,6 +58,10 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
     setFiles(files.filter((_, i) => i !== index));
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    setText(suggestion);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!text.trim() && files.length === 0) return;
@@ -57,13 +69,13 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto">
+    <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto space-y-4">
       <div className="relative bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden transition-shadow focus-within:shadow-xl focus-within:border-emerald-500/50">
         
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Tell me about yourself... (e.g., 'I'm in SS3, I love biology but hate math. My family wants me to be a doctor, but I prefer art.')"
+          placeholder="Tell me your story... (e.g., your current level, favorite subjects, financial situation, and dreams)"
           className="w-full min-h-[160px] p-6 text-slate-700 placeholder-slate-400 focus:outline-none text-lg resize-none bg-transparent"
           disabled={isLoading}
         />
@@ -106,12 +118,8 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
               title="Upload transcript, results, or notes"
             >
               <Camera className="w-5 h-5 text-slate-400 group-hover:text-emerald-600" />
-              <span className="hidden sm:inline">Add Photo/Doc</span>
+              <span className="hidden sm:inline">Add Photo/Doc <span className="text-slate-400 font-normal">(Optional)</span></span>
             </button>
-            <div className="h-6 w-px bg-slate-300 mx-2 hidden sm:block"></div>
-            <span className="text-xs text-slate-400 hidden sm:inline-block">
-                Tip: Upload transcripts or handwritten notes for better analysis!
-            </span>
           </div>
 
           <button
@@ -134,6 +142,23 @@ const InputForm: React.FC<InputFormProps> = ({ onSubmit, isLoading }) => {
           </button>
         </div>
       </div>
+
+      {/* Suggestion Chips */}
+      {!isLoading && !text && (
+        <div className="flex flex-wrap gap-2 justify-center animate-fadeIn px-2">
+          {SUGGESTIONS.map((suggestion, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => handleSuggestionClick(suggestion)}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs text-slate-600 hover:bg-emerald-50 hover:border-emerald-200 hover:text-emerald-700 transition-all shadow-sm"
+            >
+              <Sparkles className="w-3 h-3 text-emerald-500" />
+              {suggestion}
+            </button>
+          ))}
+        </div>
+      )}
     </form>
   );
 };

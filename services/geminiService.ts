@@ -1,26 +1,61 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ANALYSIS_PROMPT, RESEARCH_PROMPT } from "../constants";
-import { CareerAdviceResponse, FileData } from "../types";
+import { ANALYSIS_PROMPT } from "../constants";
+import { CareerAdviceResponse, FileData, Pathway } from "../types";
 
 const apiKey = process.env.API_KEY;
 
-// Schema for Step 1 (Analysis)
+// --- SCHEMAS ---
+
 const analysisSchema: Schema = {
   type: Type.OBJECT,
   properties: {
     studentProfile: {
       type: Type.OBJECT,
       properties: {
-        summary: { type: Type.STRING },
+        summary: { type: Type.STRING, description: "A concise summary of the student's profile (max 100 words)." },
         keyStrengths: { type: Type.ARRAY, items: { type: Type.STRING } }
-      }
+      },
+      required: ["summary", "keyStrengths"]
     },
-    contextAnalysis: { type: Type.STRING },
-    practicalPathTitle: { type: Type.STRING },
-    growthPathTitle: { type: Type.STRING },
-    reasoning: { type: Type.STRING }
+    contextAnalysis: { type: Type.STRING, description: "Analysis of their situation and constraints." },
+    practicalPathTitle: { type: Type.STRING, description: "Title of the realistic, near-term career path." },
+    growthPathTitle: { type: Type.STRING, description: "Title of the aspirational, long-term career path." },
+    reasoning: { type: Type.STRING, description: "Why these two paths were chosen." }
   },
-  required: ["studentProfile", "contextAnalysis", "practicalPathTitle", "growthPathTitle"]
+  required: ["studentProfile", "contextAnalysis", "practicalPathTitle", "growthPathTitle", "reasoning"]
+};
+
+const pathwaySchema: Schema = {
+  type: Type.OBJECT,
+  properties: {
+    title: { type: Type.STRING },
+    fitReason: { type: Type.STRING, description: "Why this fits the user (max 2 sentences)." },
+    requiredSkills: {
+      type: Type.OBJECT,
+      properties: {
+        technical: { type: Type.ARRAY, items: { type: Type.STRING } },
+        soft: { type: Type.ARRAY, items: { type: Type.STRING } }
+      },
+      required: ["technical", "soft"]
+    },
+    educationOptions: { type: Type.ARRAY, items: { type: Type.STRING } },
+    timeline: { type: Type.STRING, description: "e.g., '6-12 months'" },
+    challenges: { type: Type.ARRAY, items: { type: Type.STRING } },
+    actionSteps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 concrete starting steps." },
+    marketReality: { type: Type.STRING, description: "Current demand and job availability." },
+    salaryRange: {
+      type: Type.OBJECT,
+      properties: {
+        min: { type: Type.NUMBER },
+        max: { type: Type.NUMBER },
+        currency: { type: Type.STRING, description: "Local currency code e.g. NGN, USD" }
+      },
+      required: ["min", "max", "currency"]
+    },
+    demandScore: { type: Type.NUMBER, description: "0 to 100" },
+    growthScore: { type: Type.NUMBER, description: "0 to 100" }
+  },
+  required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "salaryRange", "demandScore", "growthScore"]
 };
 
 export const generateCareerAdvice = async (
@@ -32,9 +67,9 @@ export const generateCareerAdvice = async (
   }
 
   const ai = new GoogleGenAI({ apiKey });
+  const modelName = "gemini-2.5-flash"; // Flash is faster and supports strict JSON well
 
-  // --- STEP 1: The Counselor (Gemini 3 Pro) ---
-  // Purpose: Deep Reasoning & OCR
+  // Prepare input parts
   const analysisParts: any[] = [];
   if (files && files.length > 0) {
     files.forEach(file => {
@@ -45,85 +80,75 @@ export const generateCareerAdvice = async (
   }
   analysisParts.push({ text: `Student Scenario: ${textInput}` });
 
+  // --- STEP 1: ANALYSIS ---
   let analysisResult: any;
-
   try {
+    console.log("Step 1: Analyzing Profile...");
     const analysisResponse = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", 
+      model: modelName,
       contents: { role: "user", parts: analysisParts },
       config: {
         systemInstruction: ANALYSIS_PROMPT,
         responseMimeType: "application/json",
         responseSchema: analysisSchema,
-        temperature: 0.5,
+        temperature: 0.3,
       }
     });
 
-    const cleanJson = analysisResponse.text ? analysisResponse.text.replace(/```json\n?|```/g, '').trim() : "{}";
-    analysisResult = JSON.parse(cleanJson);
-  } catch (e) {
-    console.error("Step 1 Analysis Failed", e);
-    throw new Error("Failed to analyze profile.");
+    if (!analysisResponse.text) throw new Error("Empty response from AI");
+    analysisResult = JSON.parse(analysisResponse.text);
+  } catch (error) {
+    console.error("Step 1 Failed:", error);
+    throw new Error("Failed to analyze profile. Please try again.");
   }
 
-  // --- STEP 2: The Researcher (Gemini 2.5 Flash) ---
-  // Purpose: Search Grounding & Data Gathering
-  const researchPromptFormatted = RESEARCH_PROMPT
-    .replace("[INSERT_PRACTICAL_TITLE]", analysisResult.practicalPathTitle)
-    .replace("[INSERT_GROWTH_TITLE]", analysisResult.growthPathTitle);
-
-  const researchParts = [{
-    text: `
-      CONTEXT FROM STEP 1:
-      Student Profile: ${JSON.stringify(analysisResult.studentProfile)}
-      Context: ${analysisResult.contextAnalysis}
+  // --- STEP 2 & 3: PATHWAY GENERATION (PARALLEL) ---
+  console.log("Step 2: Generating Pathways...");
+  
+  const generatePathway = async (title: string, type: 'Practical' | 'Growth'): Promise<Pathway> => {
+    const prompt = `
+      Create a detailed ${type} Career Pathway for the role: "${title}".
       
-      GENERATE FULL ADVICE NOW.
-    `
-  }];
+      Student Context:
+      ${JSON.stringify(analysisResult.studentProfile)}
+      ${analysisResult.contextAnalysis}
+      
+      Requirements:
+      - Be realistic for the African/Nigerian context if applicable.
+      - Estimate salary ranges in local currency based on your knowledge.
+      - Keep text concise and actionable.
+    `;
 
-  try {
-    const researchResponse = await ai.models.generateContent({
-      model: "gemini-2.5-flash", // Flash is best for Search tools
-      contents: { role: "user", parts: researchParts },
+    const response = await ai.models.generateContent({
+      model: modelName,
+      contents: { role: "user", parts: [{ text: prompt }] },
       config: {
-        systemInstruction: researchPromptFormatted,
-        // Strict JSON schema is NOT supported with Search tool, so we rely on prompt engineering + manual parse
-        tools: [{ googleSearch: {} }], 
-        temperature: 0.3, 
+        responseMimeType: "application/json",
+        responseSchema: pathwaySchema,
+        temperature: 0.4,
       }
     });
+    
+    return JSON.parse(response.text!) as Pathway;
+  };
 
-    let finalText = researchResponse.text || "{}";
-    // Sanitize
-    finalText = finalText.replace(/```json\n?|```/g, '').trim();
-    // Sometimes the model adds text before the JSON in search mode, try to find the first { and last }
-    const firstBrace = finalText.indexOf('{');
-    const lastBrace = finalText.lastIndexOf('}');
-    if (firstBrace !== -1 && lastBrace !== -1) {
-      finalText = finalText.substring(firstBrace, lastBrace + 1);
-    }
+  try {
+    const [practicalPathway, growthPathway] = await Promise.all([
+      generatePathway(analysisResult.practicalPathTitle, 'Practical'),
+      generatePathway(analysisResult.growthPathTitle, 'Growth')
+    ]);
 
-    const finalData = JSON.parse(finalText) as CareerAdviceResponse;
-
-    // Extract sources
-    const sources = researchResponse.candidates?.[0]?.groundingMetadata?.groundingChunks
-      ?.map((chunk: any) => ({
-        title: chunk.web?.title || "Reference",
-        uri: chunk.web?.uri || ""
-      }))
-      .filter((s: any) => s.uri !== "");
-
-    // Merge the Step 1 deep profile (which might be better) with Step 2 data if Step 2 was lazy
-    if (!finalData.studentProfile || finalData.studentProfile.summary.length < 10) {
-        finalData.studentProfile = analysisResult.studentProfile;
-    }
-    finalData.sources = sources;
-
-    return finalData;
+    return {
+      studentProfile: analysisResult.studentProfile,
+      contextAnalysis: analysisResult.contextAnalysis,
+      practicalPathway,
+      growthPathway,
+      closingMessage: "Your personalized career roadmap is ready. Remember, these are starting points—your journey is yours to define."
+    };
 
   } catch (error) {
-    console.error("Step 2 Research Failed", error);
-    throw error;
+    console.error("Step 2 Failed:", error);
+    // Fallback if one pathway fails - highly unlikely with strict schema, but good practice
+    throw new Error("Failed to generate detailed pathways. Please try again.");
   }
 };

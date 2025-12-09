@@ -1,6 +1,7 @@
+
 import React, { useState } from 'react';
 import { CareerAdviceResponse, Pathway } from '../types';
-import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown, ExternalLink } from 'lucide-react';
+import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown, ExternalLink, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface ResultViewProps {
@@ -16,6 +17,9 @@ interface AccordionItemProps {
   defaultOpen?: boolean;
   className?: string;
 }
+
+// Helper to safely map over potentially undefined arrays
+const safeArray = <T,>(arr: T[] | undefined | null): T[] => Array.isArray(arr) ? arr : [];
 
 const AccordionItem: React.FC<AccordionItemProps> = ({ 
   title, 
@@ -57,9 +61,11 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
 // --- Custom Components for Charts ---
 
 const SalaryChart: React.FC<{ min: number; max: number; currency: string }> = ({ min, max, currency }) => {
+  if (!min || !max || min === 0 || max === 0) return null;
+  
   const data = [
-    { name: 'Entry Level', amount: min },
-    { name: 'Experienced', amount: max },
+    { name: 'Entry', amount: min },
+    { name: 'Senior', amount: max },
   ];
 
   return (
@@ -85,6 +91,8 @@ const SalaryChart: React.FC<{ min: number; max: number; currency: string }> = ({
 };
 
 const DemandGauge: React.FC<{ score: number }> = ({ score }) => {
+  if (score === undefined || score === 0) return null;
+
   // Score 0-100
   const color = score > 75 ? "bg-emerald-500" : score > 40 ? "bg-amber-500" : "bg-red-500";
   const text = score > 75 ? "High Demand" : score > 40 ? "Moderate" : "Low Demand";
@@ -110,9 +118,35 @@ const DemandGauge: React.FC<{ score: number }> = ({ score }) => {
   );
 };
 
+// --- Checkbox Logic for LocalStorage ---
+const ActionStepCheckbox: React.FC<{ step: string; id: string }> = ({ step, id }) => {
+  const [checked, setChecked] = useState(() => {
+    return localStorage.getItem(id) === 'true';
+  });
+
+  const toggle = () => {
+    const newState = !checked;
+    setChecked(newState);
+    localStorage.setItem(id, String(newState));
+  };
+
+  return (
+    <li className="flex items-start gap-3 p-2 rounded-lg hover:bg-slate-50 transition-colors cursor-pointer" onClick={toggle}>
+      <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center transition-colors ${checked ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 bg-white'}`}>
+        {checked && <CheckCircle className="w-3.5 h-3.5 text-white" />}
+      </div>
+      <span className={`text-sm leading-relaxed transition-all ${checked ? 'text-slate-400 line-through' : 'text-slate-800'}`}>
+        {step}
+      </span>
+    </li>
+  );
+};
 
 const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
+  if (!data) return null;
+  
   const [activeTab, setActiveTab] = useState<'practical' | 'growth'>('practical');
+  const [feedbackState, setFeedbackState] = useState<'none' | 'helpful' | 'not-helpful'>('none');
 
   const renderPathway = (pathway: Pathway, type: 'practical' | 'growth') => (
     <div className="animate-fadeIn space-y-6">
@@ -135,36 +169,42 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
           {pathway.fitReason}
         </p>
 
-        {/* Data Dashboard Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-          {/* Card 1: Market Stats */}
-          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-             <div className="flex items-center gap-2 mb-3 text-slate-500 font-medium">
-                <TrendingUp className="w-4 h-4" />
-                <span>Market Reality</span>
-             </div>
-             <DemandGauge score={pathway.demandScore} />
-             <p className="text-xs text-slate-400 mt-3">{pathway.marketReality}</p>
-          </div>
+        {/* Data Dashboard Grid - Conditionally Rendered */}
+        {(pathway.demandScore > 0 || (pathway.salaryRange && pathway.salaryRange.max > 0)) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+            {/* Card 1: Market Stats */}
+            {pathway.demandScore > 0 && (
+              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-3 text-slate-500 font-medium">
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Market Reality</span>
+                </div>
+                <DemandGauge score={pathway.demandScore} />
+                <p className="text-xs text-slate-400 mt-3">{pathway.marketReality}</p>
+              </div>
+            )}
 
-          {/* Card 2: Salary Estimates */}
-          <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
-             <div className="flex items-center gap-2 mb-1 text-slate-500 font-medium">
-                <div className="text-sm">Est. Monthly Income</div>
-             </div>
-             <div className="flex items-baseline gap-1">
-                <span className="text-2xl font-bold text-slate-800">
-                  {pathway.salaryRange.currency} {pathway.salaryRange.max.toLocaleString()}
-                </span>
-                <span className="text-xs text-slate-400">/mo (Senior)</span>
-             </div>
-             <SalaryChart 
-                min={pathway.salaryRange.min} 
-                max={pathway.salaryRange.max} 
-                currency={pathway.salaryRange.currency} 
-             />
+            {/* Card 2: Salary Estimates */}
+            {pathway.salaryRange && pathway.salaryRange.max > 0 && (
+              <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
+                <div className="flex items-center gap-2 mb-1 text-slate-500 font-medium">
+                    <div className="text-sm">Est. Monthly Income</div>
+                </div>
+                <div className="flex items-baseline gap-1">
+                    <span className="text-2xl font-bold text-slate-800">
+                      {pathway.salaryRange.currency} {pathway.salaryRange.max.toLocaleString()}
+                    </span>
+                    <span className="text-xs text-slate-400">/mo (Senior)</span>
+                </div>
+                <SalaryChart 
+                    min={pathway.salaryRange.min} 
+                    max={pathway.salaryRange.max} 
+                    currency={pathway.salaryRange.currency} 
+                />
+              </div>
+            )}
           </div>
-        </div>
+        )}
       </div>
 
       {/* Action Steps - Prominent */}
@@ -173,14 +213,9 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
           <CheckCircle className="w-5 h-5 text-emerald-600" />
           Start This Week
         </h4>
-        <ul className="space-y-3">
-          {pathway.actionSteps.map((step, i) => (
-            <li key={i} className="flex items-start gap-3">
-              <div className="flex-shrink-0 w-6 h-6 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center text-xs font-bold mt-0.5">
-                {i + 1}
-              </div>
-              <span className="text-sm text-slate-800 leading-relaxed">{step}</span>
-            </li>
+        <ul className="space-y-1">
+          {safeArray(pathway.actionSteps).map((step, i) => (
+             <ActionStepCheckbox key={i} step={step} id={`step-${type}-${i}-${pathway.title.substring(0,5)}`} />
           ))}
         </ul>
       </div>
@@ -196,7 +231,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Technical</p>
               <div className="flex flex-wrap gap-2">
-                {pathway.requiredSkills.technical.map((skill, i) => (
+                {safeArray(pathway.requiredSkills?.technical).map((skill, i) => (
                   <span key={i} className="px-2 py-1 bg-slate-100 text-slate-700 text-sm rounded-md border border-slate-200">{skill}</span>
                 ))}
               </div>
@@ -204,7 +239,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
             <div>
               <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Soft Skills</p>
               <div className="flex flex-wrap gap-2">
-                {pathway.requiredSkills.soft.map((skill, i) => (
+                {safeArray(pathway.requiredSkills?.soft).map((skill, i) => (
                   <span key={i} className="px-2 py-1 bg-amber-50 text-amber-800 text-sm rounded-md border border-amber-100">{skill}</span>
                 ))}
               </div>
@@ -222,7 +257,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
             <span>Expected Timeline: <strong>{pathway.timeline}</strong></span>
           </div>
           <ul className="space-y-3">
-            {pathway.educationOptions.map((opt, i) => (
+            {safeArray(pathway.educationOptions).map((opt, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                 <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-400 flex-shrink-0" />
                 <span className="leading-relaxed">{opt}</span>
@@ -237,7 +272,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
           iconColor="text-amber-500"
         >
           <ul className="space-y-3">
-            {pathway.challenges.map((challenge, i) => (
+            {safeArray(pathway.challenges).map((challenge, i) => (
               <li key={i} className="flex items-start gap-3 text-sm text-slate-700">
                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-amber-400 flex-shrink-0" />
                  <span className="leading-relaxed">{challenge}</span>
@@ -262,7 +297,7 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
         </div>
         
         <div className="flex flex-wrap gap-2">
-          {data.studentProfile.keyStrengths.map((strength, i) => (
+          {safeArray(data.studentProfile.keyStrengths).map((strength, i) => (
             <span key={i} className="px-3 py-1 bg-slate-100 text-slate-700 text-sm font-medium rounded-full">
               {strength}
             </span>
@@ -321,20 +356,50 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
         </div>
       )}
 
-      {/* Closing */}
-      <div className="bg-emerald-900 text-white rounded-2xl p-8 text-center relative overflow-hidden animate-fadeIn" style={{ animationDelay: '0.2s' }}>
+      {/* Feedback & Closing */}
+      <div className="bg-emerald-900 text-white rounded-2xl p-8 text-center relative overflow-hidden animate-fadeIn space-y-8" style={{ animationDelay: '0.2s' }}>
         <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent"></div>
-        <h3 className="text-xl font-bold mb-3 relative z-10">A Note from CareerSage</h3>
-        <p className="text-emerald-100 mb-6 max-w-2xl mx-auto relative z-10">
-          {data.closingMessage}
-        </p>
-        <button 
-          onClick={onReset}
-          className="relative z-10 inline-flex items-center gap-2 px-6 py-2 bg-white text-emerald-900 rounded-full font-semibold hover:bg-emerald-50 transition-colors"
-        >
-          Start New Session
-          <ArrowRight className="w-4 h-4" />
-        </button>
+        
+        {/* Feedback Section */}
+        <div className="relative z-10 border-b border-emerald-800 pb-6">
+           <h4 className="text-sm font-medium text-emerald-300 mb-3 uppercase tracking-wider">Was this advice helpful?</h4>
+           <div className="flex justify-center gap-4">
+             <button 
+                onClick={() => setFeedbackState('helpful')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${feedbackState === 'helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-700 text-emerald-100 hover:bg-emerald-800'}`}
+             >
+                <ThumbsUp className="w-4 h-4" /> Yes
+             </button>
+             <button 
+                onClick={() => setFeedbackState('not-helpful')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-all ${feedbackState === 'not-helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-700 text-emerald-100 hover:bg-emerald-800'}`}
+             >
+                <ThumbsDown className="w-4 h-4" /> No
+             </button>
+           </div>
+           {feedbackState !== 'none' && (
+             <p className="text-xs text-emerald-300 mt-2 animate-fadeIn">Thanks for your feedback! We are constantly learning.</p>
+           )}
+        </div>
+
+        <div className="relative z-10">
+          <h3 className="text-xl font-bold mb-3">A Note from CareerSage</h3>
+          <p className="text-emerald-100 mb-6 max-w-2xl mx-auto">
+            {data.closingMessage}
+          </p>
+          <div className="flex flex-col items-center gap-4">
+            <button 
+              onClick={onReset}
+              className="inline-flex items-center gap-2 px-6 py-2 bg-white text-emerald-900 rounded-full font-semibold hover:bg-emerald-50 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+            >
+              Start New Session
+              <ArrowRight className="w-4 h-4" />
+            </button>
+            <p className="text-[10px] text-emerald-400/60 max-w-lg leading-tight">
+              Disclaimer: This AI tool provides educational guidance only. It accounts for general Nigerian/African market trends but does not replace professional legal, financial, or admission counseling.
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   );
