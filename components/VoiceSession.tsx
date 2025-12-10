@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { Mic, MicOff, PhoneOff, Radio, Volume2 } from 'lucide-react';
@@ -70,6 +71,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
           systemInstruction: LIVE_SYSTEM_PROMPT,
+          tools: [{ googleSearch: {} }], // Enable Search Grounding for Voice
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
@@ -253,8 +255,8 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
         {/* Status Text */}
         <div className="absolute -bottom-10 left-0 right-0 text-center">
             <p className="text-lg font-medium text-slate-700">
-                {status === 'connecting' && "Connecting to CareerSage..."}
-                {status === 'connected' && (isMuted ? "Microphone Muted" : "Listening...")}
+                {status === 'connecting' && "Connecting to CareerSage Voice..."}
+                {status === 'connected' && (isMuted ? "Microphone Muted" : "Listening (Search Enabled)...")}
                 {status === 'error' && "Connection Failed"}
             </p>
         </div>
@@ -285,7 +287,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
       </div>
 
       <div className="mt-8 p-4 bg-emerald-50 text-emerald-800 rounded-lg max-w-md text-center text-sm">
-        <p>Tip: Speak naturally. You can interrupt CareerSage at any time.</p>
+        <p>Tip: Ask about real-time updates like "When is the next JAMB exam?" or "What are current tech salaries?"</p>
       </div>
     </div>
   );

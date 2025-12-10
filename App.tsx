@@ -1,23 +1,25 @@
+
 import React, { useState } from 'react';
-import { Compass, Sparkles, Mic, MessageSquare } from 'lucide-react';
+import { Compass, Sparkles, Mic, MessageSquare, MessageCircle } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData } from './types';
 import { generateCareerAdvice } from './services/geminiService';
 import InputForm from './components/InputForm';
 import ResultView from './components/ResultView';
 import LoadingScreen from './components/LoadingScreen';
 import VoiceSession from './components/VoiceSession';
+import ChatSession from './components/ChatSession';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [result, setResult] = useState<CareerAdviceResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [isVoiceMode, setIsVoiceMode] = useState(false);
+  const [mode, setMode] = useState<'text' | 'voice' | 'chat'>('text');
 
   const handleAnalyze = async (text: string, files: FileData[]) => {
     // Basic Validation
     const cleanText = text.trim();
     if (cleanText.length < 20 && files.length === 0) {
-        // Show validation tip - in a real app this might be a toast or modal
+        // Show validation tip
         setErrorMsg("Please provide a bit more detail (at least 20 characters) or upload a file so we can give you the best advice!");
         setAppState(AppState.ERROR);
         return;
@@ -32,7 +34,6 @@ const App: React.FC = () => {
       setAppState(AppState.RESULTS);
     } catch (err: any) {
       console.error(err);
-      // Detailed error handling
       let msg = "Something went wrong while connecting to CareerSage.";
       if (err.message) msg += ` Details: ${err.message}`;
       
@@ -47,11 +48,16 @@ const App: React.FC = () => {
     setErrorMsg(null);
   };
 
-  const toggleVoiceMode = () => {
-    setIsVoiceMode(!isVoiceMode);
-    // If we were showing results or analyzing, reset to idle when switching modes
+  const switchMode = (newMode: 'text' | 'voice' | 'chat') => {
+    setMode(newMode);
     if (appState !== AppState.IDLE) {
-      resetApp();
+      // Keep results if switching back to text, but reset for others usually
+      // For now, let's allow preserving state when switching TO text, but reset when leaving text flow
+      if (appState === AppState.RESULTS && newMode === 'text') {
+          // do nothing, keep results
+      } else {
+        resetApp();
+      }
     }
   };
 
@@ -70,26 +76,28 @@ const App: React.FC = () => {
           </div>
           
           {/* Mode Toggle */}
-          <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200">
+          <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200 overflow-x-auto">
             <button
-              onClick={() => setIsVoiceMode(false)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${!isVoiceMode ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => switchMode('text')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span className="hidden sm:inline">Text</span>
+              <span className="hidden sm:inline">Analysis</span>
             </button>
             <button
-              onClick={() => setIsVoiceMode(true)}
-              className={`flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium transition-all ${isVoiceMode ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              onClick={() => switchMode('voice')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mode === 'voice' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
             >
               <Mic className="w-4 h-4" />
               <span className="hidden sm:inline">Voice</span>
             </button>
-          </div>
-
-          <div className="hidden md:flex items-center gap-1 text-sm text-slate-500">
-             <Sparkles className="w-4 h-4 text-emerald-500" />
-             <span className="text-xs">AI Counselor</span>
+            <button
+              onClick={() => switchMode('chat')}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium transition-all ${mode === 'chat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span className="hidden sm:inline">Agent Chat</span>
+            </button>
           </div>
         </div>
       </header>
@@ -97,9 +105,15 @@ const App: React.FC = () => {
       {/* Main Content */}
       <main className="flex-1 w-full max-w-7xl mx-auto px-4 md:px-6 py-8 md:py-12">
         
-        {isVoiceMode ? (
-          <VoiceSession onEndSession={() => setIsVoiceMode(false)} />
-        ) : (
+        {mode === 'voice' && (
+          <VoiceSession onEndSession={() => switchMode('text')} />
+        )}
+
+        {mode === 'chat' && (
+           <ChatSession />
+        )}
+
+        {mode === 'text' && (
           <>
             {appState === AppState.IDLE && (
               <div className="flex flex-col items-center animate-fadeIn">
@@ -119,7 +133,7 @@ const App: React.FC = () => {
                   {[
                     { title: "Understanding First", desc: "We analyze your unique story, not just test scores." },
                     { title: "Realistic Pathways", desc: "Get practical steps for now and aspirational goals for later." },
-                    { title: "Culturally Aware", desc: "Tailored for the realities of local markets and education." }
+                    { title: "Agentic Research", desc: "Our AI agents research real-time job market data for you." }
                   ].map((item, i) => (
                     <div key={i} className="p-4 rounded-xl bg-white border border-slate-100 shadow-sm">
                       <h3 className="font-semibold text-slate-800 mb-2">{item.title}</h3>
@@ -169,7 +183,7 @@ const App: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-8">
         <div className="max-w-7xl mx-auto px-4 md:px-6 text-center">
           <p className="text-sm text-slate-500">
-            © {new Date().getFullYear()} CareerSage. Powered by Gemini 2.5 Flash.
+            © {new Date().getFullYear()} CareerSage. Powered by Gemini 3 Pro.
           </p>
           <p className="text-xs text-slate-400 mt-2 max-w-2xl mx-auto">
             Disclaimer: CareerSage uses Artificial Intelligence to provide guidance. This information is for educational purposes only and does not constitute professional financial, legal, or binding career advice. Always verify information with local institutions.

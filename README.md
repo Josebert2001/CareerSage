@@ -1,85 +1,82 @@
+
 # CareerSage - AI Career Counselor
 
-CareerSage is an AI-powered career counseling application designed to help students—particularly in Nigeria and Africa—make informed, realistic decisions about their futures. 
+**Empowering students in Nigeria & Africa with realistic, human-centered career guidance.**
 
-Unlike generic career tools, CareerSage prioritizes deep narrative understanding, cultural context (considering local education systems like JAMB/WAEC, NYSC, and economic realities), and provides a dual-pathway recommendation system.
+CareerSage is a next-generation career counseling platform built with **Gemini 3 Pro** and **Gemini Live**. It moves beyond generic personality quizzes to provide deep, narrative-driven guidance that respects the user's cultural context, financial reality, and personal story.
 
-## 🚀 Features
+## 🌟 Key Features
 
-- **Deep Contextual Analysis**: Moves beyond personality quizzes to understand the student's full story, financial constraints, and family dynamics.
-- **Dual-Pathway System**:
-  - **Practical Pathway**: A realistic, near-term option (6-24 months) focusing on immediate stability and achievable skills.
-  - **Growth Pathway**: A long-term, aspirational vision (3-5+ years) aligning with deep passions and high-level goals.
-- **Document Analysis**: Capable of analyzing uploaded transcripts, CVs, and personal statements to inform advice.
-- **Region-Aware Guidance**: Specifically tuned for the African context, accounting for infrastructure challenges, local job markets, and migration realities.
-- **Actionable Steps**: Provides immediate, concrete "Start This Week" tasks rather than vague motivation.
+### 🧠 Gemini 3 Pro Intelligence
+- **Advanced Reasoning**: Uses `gemini-3-pro-preview` to analyze complex user stories, uploaded transcripts, and personal constraints.
+- **Dual-Pathway System**: Generates two distinct plans:
+  - **Practical Pathway**: A "Start Now" plan (6-18 months) for immediate stability.
+  - **Growth Pathway**: An aspirational vision (3-5 years) for long-term fulfillment.
+- **Human-First UX**: Includes a "What I Heard" reflection step to ensure the user feels understood before advice is given.
+
+### 🎙️ Live Voice Consultation (Gemini Live)
+- **Real-Time Conversation**: Users can talk to CareerSage naturally using the **Gemini Live API** (Multimodal Audio).
+- **Search Grounding**: The voice assistant uses **Google Search** tools to answer real-time questions (e.g., "When is the next JAMB exam?", "Current exchange rates").
+- **Low Latency**: Built on WebSocket technology for fluid, interruption-friendly dialogue.
+
+### 📄 Multimodal Analysis
+- **Document Upload**: Users can upload images of transcripts, CVs, or handwritten notes.
+- **Visual Understanding**: Gemini analyzes these documents to extract grades and skills automatically.
+
+### 📊 Visual & Interactive Results
+- **Dynamic Charts**: Visualizes Salary Ranges and Market Demand using Recharts.
+- **Progress Tracking**: "Start This Week" action steps feature persistent checkboxes to track real-life progress.
+- **Reality Checks**: Dedicated sections for "Hard Truths" about specific career paths in the African context.
 
 ## 🛠️ Tech Stack
 
-- **Frontend**: React 18
-- **Styling**: Tailwind CSS
+- **Core AI**: Google Gemini 3 Pro Preview (`gemini-3-pro-preview`)
+- **Voice AI**: Gemini Live API (`gemini-2.5-flash-native-audio`)
+- **Frontend**: React 18, TypeScript, Tailwind CSS
+- **Visualization**: Recharts
 - **Icons**: Lucide React
-- **AI Model**: Google Gemini API (`gemini-3-pro-preview`)
-- **Build/Runtime**: ES Modules via Import Maps (No-build setup compatible) / Vite-ready structure.
+- **Architecture**: Client-side SPA (Single Page Application) with ES Modules.
 
-## 📂 Project Structure
-
-```
-├── components/
-│   ├── InputForm.tsx       # User input handling (Text + File Uploads)
-│   ├── ResultView.tsx      # Displays the analysis (Accordions, Pathways)
-│   ├── LoadingScreen.tsx   # Animated loading state with helpful tips
-│   └── ...
-├── services/
-│   └── geminiService.ts    # Integration with Google GenAI SDK
-├── constants.ts            # System prompts and configuration
-├── types.ts                # TypeScript interfaces
-├── App.tsx                 # Main application controller
-├── index.tsx               # Entry point
-└── index.html              # HTML shell with Import Maps
-```
-
-## ⚡ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js (if running locally via Vite/Webpack) or a modern browser.
-- A valid **Google Gemini API Key**.
+- A **Google Gemini API Key** with access to `gemini-3-pro-preview`.
 
-### Environment Setup
+### Installation
 
-The application requires an API key to function. This is accessed via `process.env.API_KEY`.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/yourusername/careersage.git
+   ```
 
-1. Get your API key from [Google AI Studio](https://aistudio.google.com/).
-2. Ensure the key has access to the `gemini-3-pro-preview` model.
-
-### Running the Project
-
-If utilizing a standard Vite setup:
-
-1. **Install Dependencies**:
+2. **Install dependencies**:
    ```bash
    npm install
    ```
 
-2. **Start the Dev Server**:
+3. **Set up Environment**:
+   Create a `.env` file in the root:
+   ```env
+   API_KEY=your_gemini_api_key_here
+   ```
+
+4. **Run Development Server**:
    ```bash
    npm run dev
    ```
 
-3. **Open in Browser**:
-   Navigate to `http://localhost:5173`.
+## 🌍 Cultural Context
 
-## 🧠 AI Logic
+CareerSage is specifically tuned for the **Nigerian/African** market. It understands:
+- **Education Systems**: JAMB, WAEC, NECO, Poly vs. University (HND/BSc).
+- **Economic Realities**: Inflation, side hustles, remote work opportunities.
+- **Infrastructure**: Power/Internet constraints impacting career choices.
 
-CareerSage uses a sophisticated prompt engineering strategy defined in `constants.ts`. It instructs the AI to:
-1. **Sanitize Inputs**: Review user text and files.
-2. **Reject Stereotypes**: Avoid generic advice based solely on gender or simple keywords.
-3. **Output Structured JSON**: Returns data strictly matching the `CareerAdviceResponse` schema, ensuring the UI can render specific sections like "Required Skills" and "Market Reality" consistently.
+## 🛡️ Privacy & Safety
 
-## ⚠️ Disclaimer
-
-CareerSage provides guidance for educational purposes only. It does not constitute professional financial, legal, or binding career advice. Users are encouraged to verify information with local institutions and professionals.
+- **Client-Side Processing**: User data is processed directly via the API; no intermediate database storage.
+- **Disclaimer**: The app clearly states it provides educational guidance, not professional legal or financial advice.
 
 ---
 
-**Powered by Google Gemini**
+**Built for the "Vibe Code with Gemini 3 Pro" Hackathon**

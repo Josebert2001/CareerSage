@@ -294,6 +294,12 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
           <p className="mt-4 italic border-l-4 border-emerald-500 pl-4 py-1 bg-emerald-50 text-emerald-900 rounded-r-lg">
             {data.contextAnalysis}
           </p>
+          {data.reflection && (
+             <p className="mt-4 text-sm text-slate-500 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                <span className="font-semibold text-slate-700 block mb-1">Observation:</span>
+                {data.reflection}
+             </p>
+          )}
         </div>
         
         <div className="flex flex-wrap gap-2">

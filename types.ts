@@ -1,3 +1,4 @@
+
 export interface Source {
   title: string;
   uri: string;
@@ -23,6 +24,7 @@ export interface Pathway {
   };
   demandScore: number; // 0 to 100
   growthScore: number; // 0 to 100
+  realityCheck?: string;
 }
 
 export interface CareerAdviceResponse {
@@ -31,6 +33,7 @@ export interface CareerAdviceResponse {
     keyStrengths: string[];
   };
   contextAnalysis: string;
+  reflection: string;
   practicalPathway: Pathway;
   growthPathway: Pathway;
   closingMessage: string;
@@ -48,4 +51,12 @@ export enum AppState {
   ANALYZING = 'ANALYZING',
   RESULTS = 'RESULTS',
   ERROR = 'ERROR'
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'model';
+  text: string;
+  sources?: Source[];
+  isTyping?: boolean;
 }

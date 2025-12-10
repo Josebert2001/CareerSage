@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type, Schema } from "@google/genai";
+
+import { GoogleGenAI, Type, Schema, ChatSession as GenAIChatSession } from "@google/genai";
 import { ANALYSIS_PROMPT } from "../constants";
 import { CareerAdviceResponse, FileData, Pathway } from "../types";
 
@@ -18,11 +19,12 @@ const analysisSchema: Schema = {
       required: ["summary", "keyStrengths"]
     },
     contextAnalysis: { type: Type.STRING, description: "Analysis of their situation and constraints." },
+    reflection: { type: Type.STRING, description: "A 'What I Heard' section reflecting the user's story back to them." },
     practicalPathTitle: { type: Type.STRING, description: "Title of the realistic, near-term career path." },
     growthPathTitle: { type: Type.STRING, description: "Title of the aspirational, long-term career path." },
     reasoning: { type: Type.STRING, description: "Why these two paths were chosen." }
   },
-  required: ["studentProfile", "contextAnalysis", "practicalPathTitle", "growthPathTitle", "reasoning"]
+  required: ["studentProfile", "contextAnalysis", "reflection", "practicalPathTitle", "growthPathTitle", "reasoning"]
 };
 
 const pathwaySchema: Schema = {
@@ -43,6 +45,7 @@ const pathwaySchema: Schema = {
     challenges: { type: Type.ARRAY, items: { type: Type.STRING } },
     actionSteps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-5 concrete starting steps." },
     marketReality: { type: Type.STRING, description: "Current demand and job availability." },
+    realityCheck: { type: Type.STRING, description: "A grounded 'Reality Check' regarding common traps or local context." },
     salaryRange: {
       type: Type.OBJECT,
       properties: {
@@ -55,7 +58,7 @@ const pathwaySchema: Schema = {
     demandScore: { type: Type.NUMBER, description: "0 to 100" },
     growthScore: { type: Type.NUMBER, description: "0 to 100" }
   },
-  required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "salaryRange", "demandScore", "growthScore"]
+  required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "realityCheck", "salaryRange", "demandScore", "growthScore"]
 };
 
 export const generateCareerAdvice = async (
@@ -67,7 +70,8 @@ export const generateCareerAdvice = async (
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  const modelName = "gemini-2.5-flash"; // Flash is faster and supports strict JSON well
+  // Switched to Gemini 3 Pro for superior reasoning capabilities
+  const modelName = "gemini-3-pro-preview"; 
 
   // Prepare input parts
   const analysisParts: any[] = [];
@@ -83,7 +87,7 @@ export const generateCareerAdvice = async (
   // --- STEP 1: ANALYSIS ---
   let analysisResult: any;
   try {
-    console.log("Step 1: Analyzing Profile...");
+    console.log("Step 1: Analyzing Profile with Gemini 3 Pro...");
     const analysisResponse = await ai.models.generateContent({
       model: modelName,
       contents: { role: "user", parts: analysisParts },
@@ -117,6 +121,7 @@ export const generateCareerAdvice = async (
       - Be realistic for the African/Nigerian context if applicable.
       - Estimate salary ranges in local currency based on your knowledge.
       - Keep text concise and actionable.
+      - Do NOT use placeholder values (e.g., 0, "TBD"). Estimate best available data.
     `;
 
     const response = await ai.models.generateContent({
@@ -141,6 +146,7 @@ export const generateCareerAdvice = async (
     return {
       studentProfile: analysisResult.studentProfile,
       contextAnalysis: analysisResult.contextAnalysis,
+      reflection: analysisResult.reflection,
       practicalPathway,
       growthPathway,
       closingMessage: "Your personalized career roadmap is ready. Remember, these are starting points—your journey is yours to define."
@@ -148,7 +154,27 @@ export const generateCareerAdvice = async (
 
   } catch (error) {
     console.error("Step 2 Failed:", error);
-    // Fallback if one pathway fails - highly unlikely with strict schema, but good practice
     throw new Error("Failed to generate detailed pathways. Please try again.");
   }
+};
+
+// --- AGENTIC CHAT ---
+
+export const getChatSession = (): GenAIChatSession => {
+  if (!apiKey) {
+    throw new Error("API Key is missing.");
+  }
+  const ai = new GoogleGenAI({ apiKey });
+  
+  return ai.chats.create({
+    model: 'gemini-3-pro-preview',
+    config: {
+      systemInstruction: `You are CareerSage's Agentic Assistant. 
+      - Help the user by researching specific questions about scholarships, job markets, or education.
+      - You have access to Google Search. USE IT proactively when asked for facts, dates, or prices.
+      - Be concise, warm, and helpful.
+      - Do NOT make up URLs. Only provide links found via the search tool.`,
+      tools: [{ googleSearch: {} }] // Agentic Capability
+    }
+  });
 };
