@@ -60,3 +60,12 @@ export interface ChatMessage {
   sources?: Source[];
   isTyping?: boolean;
 }
+
+export interface UserProfile {
+  name: string;
+  situation: string;
+  interests: string[];
+  constraints: string[];
+  dreams: string;
+  concerns: string;
+}
