@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Compass, Sparkles, Mic, MessageSquare, MessageCircle } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData, UserProfile } from './types';
@@ -41,6 +42,26 @@ const App: React.FC = () => {
       setErrorMsg(msg);
       setAppState(AppState.ERROR);
     }
+  };
+
+  // Helper to convert profile object to narrative string for analysis
+  const getProfileNarrative = () => {
+    return `
+      My name is ${profile.name || "Student"}. 
+      Current Situation: ${profile.situation}.
+      My Interests: ${profile.interests.join(', ')}.
+      My Constraints/Context: ${profile.constraints.join(', ')}.
+      My Dreams/Goals: ${profile.dreams}.
+      Additional Concerns: ${profile.concerns}.
+      (Note: This request was triggered from a Voice Session).
+    `;
+  };
+
+  const handleVoiceReportGeneration = () => {
+    // Switch to text mode to show the results/loading screen
+    setMode('text');
+    // Trigger analysis using existing profile data
+    handleAnalyze(getProfileNarrative(), []);
   };
 
   const resetApp = () => {
@@ -117,7 +138,11 @@ const App: React.FC = () => {
       <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8">
         
         {mode === 'voice' && (
-          <VoiceSession onEndSession={() => switchMode('text')} />
+          <VoiceSession 
+            onEndSession={() => switchMode('text')} 
+            userProfile={profile}
+            onGenerateReport={handleVoiceReportGeneration}
+          />
         )}
 
         {mode === 'chat' && (

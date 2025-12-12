@@ -1,15 +1,18 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Mic, MicOff, PhoneOff, Radio, Volume2 } from 'lucide-react';
+import { Mic, MicOff, PhoneOff, Radio, Volume2, FileText } from 'lucide-react';
 import { LIVE_SYSTEM_PROMPT } from '../constants';
 import { arrayBufferToBase64, base64ToArrayBuffer, float32To16BitPCM, pcmToAudioBuffer } from '../utils/audio';
+import { UserProfile } from '../types';
 
 interface VoiceSessionProps {
   onEndSession: () => void;
+  userProfile: UserProfile;
+  onGenerateReport: () => void;
 }
 
-const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
+const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, onGenerateReport }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
@@ -66,11 +69,16 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
       // Get Microphone Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
+      // Build Context String from Profile
+      const profileContext = userProfile.name 
+        ? `\n\nUSER PROFILE DATA:\n${JSON.stringify(userProfile, null, 2)}` 
+        : '\n\nUSER PROFILE: The user has not filled out the text form yet. Ask for their name and situation.';
+
       // Connect to Live API
       sessionPromiseRef.current = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         config: {
-          systemInstruction: LIVE_SYSTEM_PROMPT,
+          systemInstruction: LIVE_SYSTEM_PROMPT + profileContext,
           tools: [{ googleSearch: {} }], // Enable Search Grounding for Voice
           responseModalities: [Modality.AUDIO],
           speechConfig: {
@@ -256,38 +264,50 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession }) => {
         <div className="absolute -bottom-10 left-0 right-0 text-center">
             <p className="text-lg font-medium text-slate-700">
                 {status === 'connecting' && "Connecting to CareerSage Voice..."}
-                {status === 'connected' && (isMuted ? "Microphone Muted" : "Listening (Search Enabled)...")}
+                {status === 'connected' && (isMuted ? "Microphone Muted" : `Listening to ${userProfile.name || 'Student'}...`)}
                 {status === 'error' && "Connection Failed"}
             </p>
         </div>
       </div>
 
       {/* Controls */}
-      <div className="flex items-center gap-6 mt-8">
-        <button
-          onClick={toggleMute}
-          className={`p-4 rounded-full transition-all ${
-            isMuted 
-              ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-              : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-          }`}
-          disabled={status !== 'connected'}
-          title={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-        </button>
+      <div className="flex flex-col items-center gap-6 mt-8">
+        <div className="flex items-center gap-6">
+            <button
+            onClick={toggleMute}
+            className={`p-4 rounded-full transition-all ${
+                isMuted 
+                ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+            disabled={status !== 'connected'}
+            title={isMuted ? "Unmute" : "Mute"}
+            >
+            {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+            </button>
 
-        <button
-          onClick={onEndSession}
-          className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
-        >
-          <PhoneOff className="w-5 h-5" />
-          End Call
-        </button>
+            <button
+            onClick={onEndSession}
+            className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
+            >
+            <PhoneOff className="w-5 h-5" />
+            End Call
+            </button>
+        </div>
+
+        {status === 'connected' && (
+            <button
+                onClick={onGenerateReport}
+                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-full font-semibold shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
+            >
+                <FileText className="w-4 h-4" />
+                Generate Written Plan
+            </button>
+        )}
       </div>
 
       <div className="mt-8 p-4 bg-emerald-50 text-emerald-800 rounded-lg max-w-md text-center text-sm">
-        <p>Tip: Ask about real-time updates like "When is the next JAMB exam?" or "What are current tech salaries?"</p>
+        <p>Tip: I have read your profile. You can ask me to explain specific parts of it or ask for a full written report.</p>
       </div>
     </div>
   );
