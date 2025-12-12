@@ -52,6 +52,7 @@ export interface FutureVision {
 }
 
 export enum AppState {
+  WELCOME = 'WELCOME',
   IDLE = 'IDLE',
   ANALYZING = 'ANALYZING',
   RESULTS = 'RESULTS',

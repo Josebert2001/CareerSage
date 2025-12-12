@@ -95,7 +95,7 @@ export const generateCareerAdvice = async (
     console.log("Step 1: Analyzing Profile with Gemini 3 Pro...");
     const analysisResponse = await ai.models.generateContent({
       model: modelName,
-      contents: { role: "user", parts: analysisParts },
+      contents: [{ role: "user", parts: analysisParts }],
       config: {
         systemInstruction: ANALYSIS_PROMPT,
         responseMimeType: "application/json",
@@ -131,7 +131,7 @@ export const generateCareerAdvice = async (
 
     const response = await ai.models.generateContent({
       model: modelName,
-      contents: { role: "user", parts: [{ text: prompt }] },
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
       config: {
         responseMimeType: "application/json",
         responseSchema: pathwaySchema,
