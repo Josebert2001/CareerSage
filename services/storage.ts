@@ -16,7 +16,8 @@ export const getHistory = (): SavedSession[] => {
 export const saveSession = (
   type: SessionType, 
   data: CareerAdviceResponse | ChatMessage[], 
-  customTitle?: string
+  customTitle?: string,
+  existingId?: string
 ): SavedSession => {
   const history = getHistory();
   const timestamp = Date.now();
@@ -37,6 +38,26 @@ export const saveSession = (
     }
   }
 
+  // Update existing session if ID provided and found
+  if (existingId) {
+    const existingIndex = history.findIndex(s => s.id === existingId);
+    if (existingIndex >= 0) {
+       const updatedSession = {
+         ...history[existingIndex],
+         timestamp, // Update modification time
+         title: customTitle || history[existingIndex].title, // Keep old title unless customized
+         preview,
+         data
+       };
+       
+       // Move updated session to top
+       const newHistory = [updatedSession, ...history.filter(s => s.id !== existingId)];
+       localStorage.setItem(STORAGE_KEY, JSON.stringify(newHistory));
+       return updatedSession;
+    }
+  }
+
+  // Create new session
   const newSession: SavedSession = {
     id: timestamp.toString(),
     type,

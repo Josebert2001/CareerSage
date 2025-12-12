@@ -16,13 +16,23 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  
+  // State for tracking session persistence
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined);
+  const sessionIdRef = useRef<string | undefined>(undefined);
+  const hasInteractedRef = useRef(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesRef = useRef<ChatMessage[]>([]); // Ref to access latest state in cleanup
 
-  // Sync ref with state
+  // Sync refs with state
   useEffect(() => {
     messagesRef.current = messages;
   }, [messages]);
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId;
+  }, [sessionId]);
 
   useEffect(() => {
     try {
@@ -31,9 +41,8 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
       
       if (initialMessages && initialMessages.length > 0) {
         setMessages(initialMessages);
-        // If restoring history, we need to feed context to the new session
-        // Note: Simple restoration just sets UI. For full context, we'd need to send history to API.
-        // For this demo, we assume the UI restoration is sufficient for the user.
+        // We don't have the original ID when restoring from simple props in this architecture, 
+        // so we start 'fresh'. First save will create a new entry (fork).
       } else {
         setMessages([{
           id: 'init',
@@ -46,14 +55,35 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
     }
   }, [initialMessages]);
 
-  // Auto-save on unmount
+  // Robust Autosave: Handles Tab Close, Refresh, and Component Unmount
   useEffect(() => {
-    return () => {
+    let savedOnUnload = false;
+
+    const save = () => {
+      if (savedOnUnload) return;
+      
       const msgs = messagesRef.current;
-      // Only save if there's user interaction (more than just the welcome msg)
-      if (msgs.length > 1) {
-        saveSession('chat', msgs);
+      const currentId = sessionIdRef.current;
+      
+      // Only auto-save if user has interacted and there is content to save
+      if (msgs.length > 1 && hasInteractedRef.current) {
+        saveSession('chat', msgs, undefined, currentId);
       }
+      
+      savedOnUnload = true;
+    };
+
+    const onBeforeUnload = () => {
+      save();
+    };
+
+    // Listen for browser close/refresh
+    window.addEventListener('beforeunload', onBeforeUnload);
+    
+    // Listen for component unmount (in-app navigation)
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      save();
     };
   }, []);
 
@@ -67,7 +97,8 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
 
   const handleManualSave = () => {
     if (messages.length > 1) {
-      saveSession('chat', messages);
+      const saved = saveSession('chat', messages, undefined, sessionId);
+      setSessionId(saved.id); // Update session ID so future autosaves update this entry
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 2000);
     }
@@ -76,6 +107,9 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
   const handleSend = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!input.trim() || !chat || isLoading) return;
+
+    // Mark as interacted so autosave will trigger
+    hasInteractedRef.current = true;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),

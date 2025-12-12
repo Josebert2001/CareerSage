@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Compass, Sparkles, Mic, MessageSquare, MessageCircle, Gamepad2, History } from 'lucide-react';
+import { Compass, Sparkles, Mic, MessageSquare, MessageCircle, Gamepad2, History, Zap } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData, UserProfile, Pathway, ChatMessage, SavedSession } from './types';
 import { generateCareerAdvice } from './services/geminiService';
 import { saveSession } from './services/storage';
@@ -134,19 +134,27 @@ const App: React.FC = () => {
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer group" onClick={resetApp}>
             <div className="bg-emerald-600 p-1.5 rounded-xl shadow-sm group-hover:bg-emerald-700 transition-colors">
               <Compass className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 to-teal-600 hidden md:block">
-              CareerSage
-            </h1>
+            <div className="hidden md:block">
+              <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 to-teal-600">
+                CareerSage
+              </h1>
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 md:gap-4">
+             {/* Tech Badge for Judges */}
+             <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-100 rounded-full text-[10px] font-bold text-indigo-700 tracking-tight shadow-sm">
+                <Zap className="w-3 h-3 fill-current" />
+                <span>Powered by Gemini 3 Pro</span>
+             </div>
+
              {/* Mode Toggle */}
-            <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200/60 shadow-inner overflow-x-auto">
+            <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200/60 shadow-inner overflow-x-auto max-w-[200px] sm:max-w-none">
                 <button
                 onClick={() => switchMode('text')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
@@ -159,21 +167,21 @@ const App: React.FC = () => {
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'voice' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                 <Mic className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Voice Call</span>
+                <span className="hidden sm:inline">Voice</span>
                 </button>
                 <button
                 onClick={() => switchMode('chat')}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'chat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
                 >
                 <MessageCircle className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Quick Chat</span>
+                <span className="hidden sm:inline">Chat</span>
                 </button>
                 <button
                 onClick={handleManualSimulationStart}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 ${mode === 'simulator' ? 'bg-indigo-600 text-white shadow-md' : 'text-indigo-600 hover:bg-indigo-50'}`}
                 >
                 <Gamepad2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Simulator</span>
+                <span className="hidden sm:inline">Sim</span>
                 </button>
             </div>
 
@@ -279,7 +287,7 @@ const App: React.FC = () => {
       <footer className="py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs text-slate-400">
-            Powered by Gemini 3 Pro • Educational Purpose Only
+            Built by the Google Gemini 3 Pro
           </p>
         </div>
       </footer>
