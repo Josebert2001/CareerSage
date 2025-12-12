@@ -1,7 +1,7 @@
 
-import { GoogleGenAI, Type, Schema, ChatSession as GenAIChatSession } from "@google/genai";
+import { GoogleGenAI, Type, Schema, ChatSession as GenAIChatSession, FunctionDeclaration, Tool } from "@google/genai";
 import { ANALYSIS_PROMPT } from "../constants";
-import { CareerAdviceResponse, FileData, Pathway } from "../types";
+import { CareerAdviceResponse, FileData, Pathway, FutureVision } from "../types";
 
 const apiKey = process.env.API_KEY;
 
@@ -61,6 +61,11 @@ const pathwaySchema: Schema = {
   required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "realityCheck", "salaryRange", "demandScore", "growthScore"]
 };
 
+// Helper to remove markdown code blocks if the model includes them
+const cleanJson = (text: string): string => {
+  return text.replace(/```json\n?|```/g, '').trim();
+};
+
 export const generateCareerAdvice = async (
   textInput: string,
   files: FileData[]
@@ -100,7 +105,7 @@ export const generateCareerAdvice = async (
     });
 
     if (!analysisResponse.text) throw new Error("Empty response from AI");
-    analysisResult = JSON.parse(analysisResponse.text);
+    analysisResult = JSON.parse(cleanJson(analysisResponse.text));
   } catch (error) {
     console.error("Step 1 Failed:", error);
     throw new Error("Failed to analyze profile. Please try again.");
@@ -134,7 +139,8 @@ export const generateCareerAdvice = async (
       }
     });
     
-    return JSON.parse(response.text!) as Pathway;
+    if (!response.text) throw new Error("Empty pathway response");
+    return JSON.parse(cleanJson(response.text)) as Pathway;
   };
 
   try {
@@ -158,6 +164,113 @@ export const generateCareerAdvice = async (
   }
 };
 
+// --- VISION GENERATOR (IMAGE) ---
+
+export const generateFutureVision = async (
+  role: string, 
+  userContext: string
+): Promise<FutureVision> => {
+  if (!apiKey) throw new Error("API Key is missing.");
+  const ai = new GoogleGenAI({ apiKey });
+
+  const prompt = `
+    Generate a high-quality, photorealistic image of a young professional working as a ${role} in a modern African context (e.g. Lagos, Nairobi, or general urban setting).
+    
+    User Context for personalization: ${userContext}
+    
+    The image should be inspiring, warm, and professional. 
+    Also, provide a short, 1-sentence motivational caption about their future success in this role.
+  `;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-3-pro-image-preview', // High quality image model
+      contents: {
+        parts: [{ text: prompt }],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio: "1:1",
+          imageSize: "1K"
+        }
+      },
+    });
+
+    let imageData = "";
+    let caption = `Your future as a ${role} looks bright.`;
+
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) {
+        imageData = part.inlineData.data;
+      } else if (part.text) {
+        caption = part.text;
+      }
+    }
+
+    if (!imageData) throw new Error("No image generated");
+
+    return { imageData, caption };
+  } catch (e) {
+    console.error("Image gen failed", e);
+    throw e;
+  }
+};
+
+// --- SIMULATION IMAGE GENERATION (FLASH 2.5) ---
+
+export const generateSimulationImage = async (prompt: string): Promise<string> => {
+  if (!apiKey) throw new Error("API Key is missing.");
+  const ai = new GoogleGenAI({ apiKey });
+
+  console.log("Generating simulation image with Gemini 2.5 Flash Image:", prompt);
+  
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-image',
+    contents: {
+      parts: [{ text: prompt }]
+    }
+  });
+
+  let imageData = "";
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
+    if (part.inlineData) {
+      imageData = part.inlineData.data;
+      break;
+    }
+  }
+
+  if (!imageData) throw new Error("Failed to generate image.");
+  return imageData;
+};
+
+export const editSimulationImage = async (base64Image: string, instruction: string): Promise<string> => {
+  if (!apiKey) throw new Error("API Key is missing.");
+  const ai = new GoogleGenAI({ apiKey });
+
+  console.log("Editing simulation image with Gemini 2.5 Flash Image:", instruction);
+
+  const response = await ai.models.generateContent({
+    model: 'gemini-2.5-flash-image',
+    contents: {
+      parts: [
+        { inlineData: { mimeType: 'image/png', data: base64Image } },
+        { text: instruction }
+      ]
+    }
+  });
+
+  let imageData = "";
+  for (const part of response.candidates?.[0]?.content?.parts || []) {
+    if (part.inlineData) {
+      imageData = part.inlineData.data;
+      break;
+    }
+  }
+
+  if (!imageData) throw new Error("Failed to edit image.");
+  return imageData;
+};
+
 // --- AGENTIC CHAT ---
 
 export const getChatSession = (): GenAIChatSession => {
@@ -175,6 +288,67 @@ export const getChatSession = (): GenAIChatSession => {
       - Be concise, warm, and helpful.
       - Do NOT make up URLs. Only provide links found via the search tool.`,
       tools: [{ googleSearch: {} }] // Agentic Capability
+    }
+  });
+};
+
+// --- SIMULATION ENGINE ---
+
+export const createSimulationSession = (role: string, context: string): GenAIChatSession => {
+  if (!apiKey) {
+    throw new Error("API Key is missing.");
+  }
+  const ai = new GoogleGenAI({ apiKey });
+
+  // Define tools for image generation and editing
+  const tools: Tool[] = [
+    {
+      functionDeclarations: [
+        {
+          name: "generate_image",
+          description: "Generate an image based on a description. Use this when the user asks to see something, design something, or visualize a scene.",
+          parameters: {
+            type: Type.OBJECT,
+            properties: {
+              prompt: { type: Type.STRING, description: "The detailed description of the image to generate." }
+            },
+            required: ["prompt"]
+          }
+        },
+        {
+          name: "edit_image",
+          description: "Edit the previously generated image based on instructions. Use this when the user wants to change, modify, apply a filter, or add/remove elements from the last image shown.",
+          parameters: {
+            type: Type.OBJECT,
+            properties: {
+              instruction: { type: Type.STRING, description: "The instruction for editing the image (e.g. 'Add a retro filter', 'Make it blue')." }
+            },
+            required: ["instruction"]
+          }
+        }
+      ]
+    }
+  ];
+  
+  return ai.chats.create({
+    model: 'gemini-2.5-flash', // Flash for lower latency in roleplay and orchestration
+    config: {
+      tools: tools,
+      systemInstruction: `
+        You are an interactive Career Simulator Engine.
+        Your Goal: Immerse the user in a "Day in the Life" scenario for the role of: ${role}.
+        
+        Rules:
+        1. Start by setting a realistic, challenging scene appropriate for an entry-level ${role}.
+        2. Keep the scene culturally relevant to the user's context: ${context}.
+        3. Do NOT just ask "What do you do?". Give them specific details/data/visuals in text.
+        4. IMAGE GENERATION: If the scenario involves visual elements (e.g., "Design a logo", "Look at this broken circuit", "View the office layout") OR if the user explicitly asks to generate/create an image, use the \`generate_image\` tool.
+        5. IMAGE EDITING: If the user wants to change an image you just showed them (e.g., "Make it darker", "Add a retro filter", "Remove the person"), use the \`edit_image\` tool.
+        6. Wait for the user's response.
+        7. React to their choice. If good, advance the plot. If bad, show the consequence (gently).
+        8. Keep turns short (max 3 sentences).
+        9. After 5 turns, or if the user solves it, conclude with a "Performance Review" and ask if they liked the job.
+      `
     }
   });
 };

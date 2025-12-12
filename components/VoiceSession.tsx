@@ -57,6 +57,10 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
       // Output: 24kHz from Gemini
       outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
+      // Safety: Resume contexts if suspended (browser autoplay policy)
+      if (inputAudioContextRef.current.state === 'suspended') await inputAudioContextRef.current.resume();
+      if (outputAudioContextRef.current.state === 'suspended') await outputAudioContextRef.current.resume();
+
       outputNodeRef.current = outputAudioContextRef.current.createGain();
       outputNodeRef.current.connect(outputAudioContextRef.current.destination);
 
@@ -168,6 +172,12 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
     if (!outputAudioContextRef.current || !outputNodeRef.current) return;
 
     const ctx = outputAudioContextRef.current;
+    
+    // Ensure context is running (safety double-check)
+    if (ctx.state === 'suspended') {
+        try { await ctx.resume(); } catch(e) { console.warn(e); }
+    }
+
     const audioBytes = base64ToArrayBuffer(base64Audio);
     
     try {

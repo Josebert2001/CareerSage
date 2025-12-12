@@ -46,10 +46,16 @@ export interface FileData {
   data: string; // Base64
 }
 
+export interface FutureVision {
+  imageData: string; // Base64
+  caption: string;
+}
+
 export enum AppState {
   IDLE = 'IDLE',
   ANALYZING = 'ANALYZING',
   RESULTS = 'RESULTS',
+  SIMULATION = 'SIMULATION',
   ERROR = 'ERROR'
 }
 
@@ -59,6 +65,8 @@ export interface ChatMessage {
   text: string;
   sources?: Source[];
   isTyping?: boolean;
+  toolUse?: string; // e.g., "Searching Google..."
+  image?: string; // Base64 image data for simulation
 }
 
 export interface UserProfile {
@@ -68,4 +76,17 @@ export interface UserProfile {
   constraints: string[];
   dreams: string;
   concerns: string;
+}
+
+// --- NEW HISTORY TYPES ---
+
+export type SessionType = 'advisor' | 'chat';
+
+export interface SavedSession {
+  id: string;
+  type: SessionType;
+  timestamp: number;
+  title: string;
+  preview: string;
+  data: CareerAdviceResponse | ChatMessage[];
 }

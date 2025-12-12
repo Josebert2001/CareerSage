@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { CareerAdviceResponse, Pathway } from '../types';
-import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown, ExternalLink, ThumbsUp, ThumbsDown, Sparkles } from 'lucide-react';
+import { CareerAdviceResponse, Pathway, FutureVision } from '../types';
+import { BookOpen, Briefcase, CheckCircle, AlertTriangle, TrendingUp, Clock, Target, ArrowRight, ChevronDown, ExternalLink, ThumbsUp, ThumbsDown, Sparkles, Gamepad2, Camera, Loader2 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { generateFutureVision } from '../services/geminiService';
 
 interface ResultViewProps {
   data: CareerAdviceResponse;
   onReset: () => void;
+  onSimulate: (pathway: Pathway) => void;
 }
 
 // Progressive Reveal Helper
@@ -20,7 +23,6 @@ const Reveal: React.FC<{ delay: number; children: React.ReactNode }> = ({ delay,
   return <div className="animate-fadeIn">{children}</div>;
 };
 
-// ... Chart & Accordion Components (Same as before, abbreviated here for clarity but included in full code)
 interface AccordionItemProps {
   title: string;
   icon: React.ElementType;
@@ -103,7 +105,62 @@ const ActionStepCheckbox: React.FC<{ step: string; id: string }> = ({ step, id }
     );
 };
 
-const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
+// --- NEW COMPONENT: Future Self Polaroid ---
+const FutureSelfPolaroid: React.FC<{ pathwayTitle: string; userContext: string }> = ({ pathwayTitle, userContext }) => {
+  const [vision, setVision] = useState<FutureVision | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [generated, setGenerated] = useState(false);
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    try {
+      const result = await generateFutureVision(pathwayTitle, userContext);
+      setVision(result);
+      setGenerated(true);
+    } catch (e) {
+      console.error(e);
+      alert("Could not generate image right now. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (generated && vision) {
+    return (
+      <div className="mt-6 animate-fadeIn">
+        <div className="bg-white p-3 pb-8 rounded shadow-xl rotate-1 transform transition-all hover:rotate-0 border border-slate-100 max-w-sm mx-auto">
+           <div className="aspect-square bg-slate-100 overflow-hidden mb-4 relative rounded-sm">
+              <img src={`data:image/png;base64,${vision.imageData}`} alt="Future Self" className="w-full h-full object-cover" />
+           </div>
+           <p className="text-center font-handwriting text-slate-600 text-lg leading-tight px-2" style={{fontFamily: 'cursive'}}>
+             {vision.caption}
+           </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-6 border-2 border-dashed border-purple-200 rounded-xl p-6 bg-purple-50/50 flex flex-col items-center text-center">
+       <div className="bg-white p-3 rounded-full mb-3 shadow-sm">
+          <Camera className="w-6 h-6 text-purple-500" />
+       </div>
+       <h4 className="font-bold text-purple-900 mb-1">Visualize Your Future</h4>
+       <p className="text-xs text-purple-700 mb-4 max-w-xs">See a snapshot of yourself in this role using AI image generation.</p>
+       
+       <button 
+         onClick={handleGenerate}
+         disabled={loading}
+         className="px-5 py-2 bg-purple-600 text-white text-sm font-semibold rounded-full hover:bg-purple-700 transition-colors shadow-md flex items-center gap-2"
+       >
+         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+         {loading ? "Developing Photo..." : "Generate Snapshot"}
+       </button>
+    </div>
+  );
+};
+
+const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) => {
   if (!data) return null;
   
   const [activeTab, setActiveTab] = useState<'practical' | 'growth'>('practical');
@@ -139,14 +196,31 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset }) => {
               {pathway.title}
             </h3>
           </div>
+          
+          {/* Action Buttons */}
+          <div className="flex gap-2 flex-wrap md:flex-nowrap">
+            <button 
+                onClick={() => onSimulate(pathway)}
+                className="flex items-center gap-2 bg-white text-slate-800 px-4 py-2 rounded-lg font-semibold shadow-sm border border-slate-200 hover:shadow-md hover:border-emerald-300 hover:text-emerald-700 transition-all group"
+            >
+                <Gamepad2 className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
+                <span>Simulate</span>
+            </button>
+          </div>
         </div>
 
         <p className="text-slate-700 leading-relaxed mb-6 bg-white/60 p-4 rounded-xl backdrop-blur-sm">
           {pathway.fitReason}
         </p>
 
+        {/* Future Vision Polaroid */}
+        <FutureSelfPolaroid 
+            pathwayTitle={pathway.title} 
+            userContext={`${data.studentProfile.summary} Location: Nigeria/Africa.`} 
+        />
+
         {(pathway.demandScore > 0 || (pathway.salaryRange && pathway.salaryRange.max > 0)) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6 mb-2">
             {pathway.demandScore > 0 && (
               <div className="bg-white p-4 rounded-xl border border-slate-100 shadow-sm">
                 <div className="flex items-center gap-2 mb-3 text-slate-500 font-medium"><TrendingUp className="w-4 h-4" /><span>Market Reality</span></div>

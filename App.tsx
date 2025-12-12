@@ -1,19 +1,31 @@
 
 import React, { useState } from 'react';
-import { Compass, Sparkles, Mic, MessageSquare, MessageCircle } from 'lucide-react';
-import { AppState, CareerAdviceResponse, FileData, UserProfile } from './types';
+import { Compass, Sparkles, Mic, MessageSquare, MessageCircle, Gamepad2, History } from 'lucide-react';
+import { AppState, CareerAdviceResponse, FileData, UserProfile, Pathway, ChatMessage, SavedSession } from './types';
 import { generateCareerAdvice } from './services/geminiService';
+import { saveSession } from './services/storage';
 import InputForm from './components/InputForm';
 import ResultView from './components/ResultView';
 import LoadingScreen from './components/LoadingScreen';
 import VoiceSession from './components/VoiceSession';
 import ChatSession from './components/ChatSession';
+import SimulationSession from './components/SimulationSession';
+import HistoryModal from './components/HistoryModal';
 
 const App: React.FC = () => {
   const [appState, setAppState] = useState<AppState>(AppState.IDLE);
   const [result, setResult] = useState<CareerAdviceResponse | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-  const [mode, setMode] = useState<'text' | 'voice' | 'chat'>('text');
+  const [mode, setMode] = useState<'text' | 'voice' | 'chat' | 'simulator'>('text');
+  
+  // State for Simulation
+  const [simulationParams, setSimulationParams] = useState<{role: string, context: string} | null>(null);
+
+  // State for Chat History restoration
+  const [chatHistoryData, setChatHistoryData] = useState<ChatMessage[] | undefined>(undefined);
+
+  // State for History Modal
+  const [showHistory, setShowHistory] = useState(false);
 
   // Lifted Input State
   const [profile, setProfile] = useState<UserProfile>({
@@ -34,6 +46,8 @@ const App: React.FC = () => {
       const data = await generateCareerAdvice(text, files);
       setResult(data);
       setAppState(AppState.RESULTS);
+      // Auto-save successful results
+      saveSession('advisor', data);
     } catch (err: any) {
       console.error(err);
       let msg = "Something went wrong while connecting to CareerSage.";
@@ -44,7 +58,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Helper to convert profile object to narrative string for analysis
   const getProfileNarrative = () => {
     return `
       My name is ${profile.name || "Student"}. 
@@ -58,18 +71,25 @@ const App: React.FC = () => {
   };
 
   const handleVoiceReportGeneration = () => {
-    // Switch to text mode to show the results/loading screen
     setMode('text');
-    // Trigger analysis using existing profile data
     handleAnalyze(getProfileNarrative(), []);
+  };
+
+  const startSimulation = (pathway: Pathway) => {
+    setSimulationParams({
+      role: pathway.title,
+      context: `User Name: ${profile.name || 'User'}. Background: ${profile.situation || 'N/A'}. Interests: ${profile.interests.join(', ')}.`
+    });
+    setMode('simulator');
   };
 
   const resetApp = () => {
     setAppState(AppState.IDLE);
     setResult(null);
     setErrorMsg(null);
-    // Optionally reset input form, or keep it to refine
     setInputStep(0);
+    setSimulationParams(null);
+    setChatHistoryData(undefined); // Clear chat history reset
     setProfile({
         name: '',
         situation: '',
@@ -80,62 +100,97 @@ const App: React.FC = () => {
     });
   };
 
-  const switchMode = (newMode: 'text' | 'voice' | 'chat') => {
+  const switchMode = (newMode: 'text' | 'voice' | 'chat' | 'simulator') => {
+    // If we switch away from chat voluntarily, we clear the restored history
+    // so next time it starts fresh (unless loaded from history again)
+    if (mode === 'chat' && newMode !== 'chat') {
+        setChatHistoryData(undefined);
+    }
     setMode(newMode);
-    if (appState !== AppState.IDLE) {
-      if (appState === AppState.RESULTS && newMode === 'text') {
-          // do nothing, keep results
-      } else {
-        // Don't fully reset app state so profile data persists if they switch back
-        // But if they were analyzing, cancel that visually
-        if (appState === AppState.ANALYZING) setAppState(AppState.IDLE);
-      }
+    
+    if (mode === 'simulator' && newMode !== 'simulator') {
+      setSimulationParams(null);
+    }
+  };
+
+  const handleManualSimulationStart = () => {
+    setSimulationParams(null); 
+    setMode('simulator');
+  };
+
+  const handleRestoreSession = (session: SavedSession) => {
+    setShowHistory(false);
+    if (session.type === 'advisor') {
+        setMode('text');
+        setResult(session.data as CareerAdviceResponse);
+        setAppState(AppState.RESULTS);
+    } else if (session.type === 'chat') {
+        setChatHistoryData(session.data as ChatMessage[]);
+        setMode('chat');
     }
   };
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-900">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-5xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+      <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer group" onClick={resetApp}>
             <div className="bg-emerald-600 p-1.5 rounded-xl shadow-sm group-hover:bg-emerald-700 transition-colors">
               <Compass className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 to-teal-600">
+            <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-800 to-teal-600 hidden md:block">
               CareerSage
             </h1>
           </div>
           
-          {/* Mode Toggle */}
-          <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200/60 shadow-inner">
-            <button
-              onClick={() => switchMode('text')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${mode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          <div className="flex items-center gap-2">
+             {/* Mode Toggle */}
+            <div className="flex bg-slate-100 rounded-full p-1 border border-slate-200/60 shadow-inner overflow-x-auto">
+                <button
+                onClick={() => switchMode('text')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'text' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                <MessageSquare className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Advisor</span>
+                </button>
+                <button
+                onClick={() => switchMode('voice')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'voice' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                <Mic className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Voice Call</span>
+                </button>
+                <button
+                onClick={() => switchMode('chat')}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all duration-300 ${mode === 'chat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+                >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Quick Chat</span>
+                </button>
+                <button
+                onClick={handleManualSimulationStart}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-all duration-300 ${mode === 'simulator' ? 'bg-indigo-600 text-white shadow-md' : 'text-indigo-600 hover:bg-indigo-50'}`}
+                >
+                <Gamepad2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Simulator</span>
+                </button>
+            </div>
+
+            {/* History Button */}
+            <button 
+                onClick={() => setShowHistory(true)}
+                className="p-2.5 rounded-full bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition-colors border border-slate-200"
+                title="History"
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Advisor</span>
-            </button>
-            <button
-              onClick={() => switchMode('voice')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${mode === 'voice' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <Mic className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Voice Call</span>
-            </button>
-            <button
-              onClick={() => switchMode('chat')}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-300 ${mode === 'chat' ? 'bg-white text-emerald-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Quick Chat</span>
+                <History className="w-4 h-4" />
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8 relative">
         
         {mode === 'voice' && (
           <VoiceSession 
@@ -146,7 +201,15 @@ const App: React.FC = () => {
         )}
 
         {mode === 'chat' && (
-           <ChatSession />
+           <ChatSession initialMessages={chatHistoryData} />
+        )}
+
+        {mode === 'simulator' && (
+            <SimulationSession 
+              initialRole={simulationParams?.role}
+              initialContext={simulationParams?.context}
+              onExit={() => switchMode('text')}
+            />
         )}
 
         {mode === 'text' && (
@@ -196,11 +259,21 @@ const App: React.FC = () => {
             )}
 
             {appState === AppState.RESULTS && result && (
-              <ResultView data={result} onReset={resetApp} />
+              <ResultView 
+                data={result} 
+                onReset={resetApp} 
+                onSimulate={startSimulation}
+              />
             )}
           </>
         )}
       </main>
+
+      <HistoryModal 
+        isOpen={showHistory} 
+        onClose={() => setShowHistory(false)} 
+        onSelectSession={handleRestoreSession} 
+      />
 
       {/* Footer */}
       <footer className="py-6 mt-auto">
