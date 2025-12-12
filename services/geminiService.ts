@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, Schema, ChatSession as GenAIChatSession, FunctionDeclaration, Tool } from "@google/genai";
+import { GoogleGenAI, Type, Schema, Chat, FunctionDeclaration, Tool } from "@google/genai";
 import { ANALYSIS_PROMPT } from "../constants";
 import { CareerAdviceResponse, FileData, Pathway, FutureVision } from "../types";
 
@@ -273,7 +273,7 @@ export const editSimulationImage = async (base64Image: string, instruction: stri
 
 // --- AGENTIC CHAT ---
 
-export const getChatSession = (): GenAIChatSession => {
+export const getChatSession = (): Chat => {
   if (!apiKey) {
     throw new Error("API Key is missing.");
   }
@@ -294,7 +294,7 @@ export const getChatSession = (): GenAIChatSession => {
 
 // --- SIMULATION ENGINE ---
 
-export const createSimulationSession = (role: string, context: string): GenAIChatSession => {
+export const createSimulationSession = (role: string, context: string): Chat => {
   if (!apiKey) {
     throw new Error("API Key is missing.");
   }
@@ -306,22 +306,22 @@ export const createSimulationSession = (role: string, context: string): GenAICha
       functionDeclarations: [
         {
           name: "generate_image",
-          description: "Generate an image based on a description. Use this when the user asks to see something, design something, or visualize a scene.",
+          description: "Generate a realistic image of the current scene, object, or person. Use this to establish the setting or show the result of an action.",
           parameters: {
             type: Type.OBJECT,
             properties: {
-              prompt: { type: Type.STRING, description: "The detailed description of the image to generate." }
+              prompt: { type: Type.STRING, description: "Detailed visual description of the scene." }
             },
             required: ["prompt"]
           }
         },
         {
           name: "edit_image",
-          description: "Edit the previously generated image based on instructions. Use this when the user wants to change, modify, apply a filter, or add/remove elements from the last image shown.",
+          description: "Edit the PREVIOUSLY shown image based on the user's action. Use this to show changes, fixes, or worsening conditions.",
           parameters: {
             type: Type.OBJECT,
             properties: {
-              instruction: { type: Type.STRING, description: "The instruction for editing the image (e.g. 'Add a retro filter', 'Make it blue')." }
+              instruction: { type: Type.STRING, description: "Instruction for editing the image (e.g. 'Make the screen red with error', 'Fix the broken pipe')." }
             },
             required: ["instruction"]
           }
@@ -335,19 +335,29 @@ export const createSimulationSession = (role: string, context: string): GenAICha
     config: {
       tools: tools,
       systemInstruction: `
-        You are an interactive Career Simulator Engine.
-        Your Goal: Immerse the user in a "Day in the Life" scenario for the role of: ${role}.
-        
-        Rules:
-        1. Start by setting a realistic, challenging scene appropriate for an entry-level ${role}.
-        2. Keep the scene culturally relevant to the user's context: ${context}.
-        3. Do NOT just ask "What do you do?". Give them specific details/data/visuals in text.
-        4. IMAGE GENERATION: If the scenario involves visual elements (e.g., "Design a logo", "Look at this broken circuit", "View the office layout") OR if the user explicitly asks to generate/create an image, use the \`generate_image\` tool.
-        5. IMAGE EDITING: If the user wants to change an image you just showed them (e.g., "Make it darker", "Add a retro filter", "Remove the person"), use the \`edit_image\` tool.
-        6. Wait for the user's response.
-        7. React to their choice. If good, advance the plot. If bad, show the consequence (gently).
-        8. Keep turns short (max 3 sentences).
-        9. After 5 turns, or if the user solves it, conclude with a "Performance Review" and ask if they liked the job.
+        You are the "Career Dungeon Master". Run a high-stakes, interactive job simulation for a ${role}.
+        User Context: ${context}.
+
+        OBJECTIVE:
+        Simulate a "Day in the Life" that tests the user's decision-making, ethics, and competence.
+
+        NARRATIVE FLOW:
+        1. **The Setup**: Begin immediately. \`generate_image\` of the workspace (POV). Describe the setting and the first task.
+        2. **The Complication**: Introduce a complex problem (e.g. equipment failure, difficult client, safety hazard, ethical dilemma).
+        3. **Decision Points (CRITICAL)**: 
+           - Present clear choices or open-ended problems.
+           - *Example*: "The server room is overheating (Image). Do you (A) Shut down the core system (safe but costly) or (B) Try to patch the cooling live (risky)?"
+        4. **Visual Consequences**: 
+           - **If the user succeeds**: Use \`edit_image\` or \`generate_image\` to show the fixed state or reward.
+           - **If the user fails**: Use \`generate_image\` to show the disaster (e.g., smoke, blue screen of death, angry boss face).
+        5. **Evaluation**: After ~6 interactions, end with a "Performance Review": Score /100 and Feedback.
+
+        BEHAVIOR RULES:
+        - **Visual First**: Use tools frequently. The user should *see* the result of their actions.
+        - **Editing**: If the user says "fix the logo" or "clean the desk", use \`edit_image\`.
+        - **Adaptability**: If the user does something unexpected, roll with it and generate consequences.
+        - **Tone**: Professional, immersive, and sometimes urgent.
+        - **Context**: Ensure scenarios fit the African/Nigerian context (e.g. dealing with power/internet constraints).
       `
     }
   });

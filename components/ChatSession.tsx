@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatSession as GenAIChatSession, GenerateContentResponse } from '@google/genai';
+import { Chat, GenerateContentResponse } from '@google/genai';
 import { getChatSession } from '../services/geminiService';
 import { ChatMessage, Source } from '../types';
 import { saveSession } from '../services/storage';
@@ -11,7 +11,7 @@ interface ChatSessionProps {
 }
 
 const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
-  const [chat, setChat] = useState<GenAIChatSession | null>(null);
+  const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);

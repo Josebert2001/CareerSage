@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ChatSession as GenAIChatSession, GenerateContentResponse } from '@google/genai';
+import { Chat, GenerateContentResponse } from '@google/genai';
 import { createSimulationSession, generateSimulationImage, editSimulationImage } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { User, Gamepad2, AlertCircle, XCircle, Play, ChevronRight, Briefcase, Bot, Image as ImageIcon, Wand2, Loader2 } from 'lucide-react';
+import { User, Gamepad2, AlertCircle, XCircle, Play, ChevronRight, Briefcase, Bot, Image as ImageIcon, Wand2, Loader2, RotateCcw } from 'lucide-react';
 import ConversationalInput from './ConversationalInput';
 
 interface SimulationSessionProps {
@@ -13,7 +13,7 @@ interface SimulationSessionProps {
 }
 
 const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, initialContext, onExit }) => {
-  const [chat, setChat] = useState<GenAIChatSession | null>(null);
+  const [chat, setChat] = useState<Chat | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -37,11 +37,12 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
       setChat(session);
       
       setIsLoading(true);
-      session.sendMessage({ message: "START_SIMULATION" }).then((response) => {
+      // Trigger the "Setup" phase explicitly
+      session.sendMessage({ message: "Begin the simulation. Generate the starting image of the workplace immediately." }).then((response) => {
           setMessages([{
             id: 'init',
             role: 'model',
-            text: response.text || "Ready to start simulation..."
+            text: response.text || "Loading simulation..."
           }]);
           setIsLoading(false);
       });
@@ -59,6 +60,16 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
     if (setupData.role.trim()) {
         setNeedsSetup(false);
         initSession(setupData.role, `User Name: ${setupData.name}. Custom Simulation Request.`);
+    }
+  };
+
+  const handleRestart = () => {
+    setMessages([]);
+    setLastImage(null);
+    if (initialRole) {
+      initSession(initialRole, initialContext || `User: ${setupData.name}`);
+    } else {
+      initSession(setupData.role, `User Name: ${setupData.name}. Custom Simulation Request.`);
     }
   };
 
@@ -88,8 +99,8 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
         if (call.name === 'generate_image') {
           const prompt = call.args['prompt'] as string;
           
-          // Show "Generating..." status in UI (optional, or just wait)
-          setMessages(prev => [...prev, { id: 'sys-'+Date.now(), role: 'model', text: '', isTyping: true, toolUse: 'Generating image...' }]);
+          // Show "Generating..." status in UI
+          setMessages(prev => [...prev, { id: 'sys-'+Date.now(), role: 'model', text: '', isTyping: true, toolUse: 'Visualizing consequence...' }]);
           
           try {
             const imageData = await generateSimulationImage(prompt);
@@ -121,7 +132,7 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
             toolResultText = "Error: No previous image found to edit. Ask user to generate one first.";
           } else {
              // Show "Editing..." status
-            setMessages(prev => [...prev, { id: 'sys-'+Date.now(), role: 'model', text: '', isTyping: true, toolUse: 'Editing image...' }]);
+            setMessages(prev => [...prev, { id: 'sys-'+Date.now(), role: 'model', text: '', isTyping: true, toolUse: 'Applying changes...' }]);
             
             try {
               const imageData = await editSimulationImage(lastImage, instruction);
@@ -155,7 +166,7 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
         });
 
         // Get the model's follow-up text
-        result = await chat.sendMessage(functionResponseParts);
+        result = await chat.sendMessage({ message: functionResponseParts });
       }
 
       // Add the final text response from model (if any)
@@ -250,20 +261,29 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
                     <h2 className="font-bold text-slate-800 text-lg hidden sm:block">Career Simulator</h2>
                     <div className="flex items-center gap-1.5 text-xs">
                          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                         <span className="text-slate-500 uppercase tracking-wide font-medium">Scenario:</span>
+                         <span className="text-slate-500 uppercase tracking-wide font-medium">Role:</span>
                          <span className="font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100">
                             {initialRole || setupData.role}
                          </span>
                     </div>
                 </div>
             </div>
-            <button 
-                onClick={onExit} 
-                className="group flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-transparent hover:border-red-100"
-            >
-                <span className="text-xs font-bold group-hover:underline decoration-red-300">END SESSION</span>
-                <XCircle className="w-5 h-5" />
-            </button>
+            <div className="flex items-center gap-2">
+                <button 
+                    onClick={handleRestart}
+                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition-colors"
+                    title="Restart Simulation"
+                >
+                    <RotateCcw className="w-5 h-5" />
+                </button>
+                <button 
+                    onClick={onExit} 
+                    className="group flex items-center gap-2 px-3 py-1.5 rounded-lg text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors border border-transparent hover:border-red-100"
+                >
+                    <span className="text-xs font-bold group-hover:underline decoration-red-300">EXIT</span>
+                    <XCircle className="w-5 h-5" />
+                </button>
+            </div>
         </div>
 
         {/* Chat Area */}
@@ -342,13 +362,13 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
                 value={input}
                 onChange={setInput}
                 onSubmit={handleSend}
-                placeholder="Type action, or say 'Generate image of...'"
+                placeholder="Make a decision (e.g., 'Fix the server')..."
                 autoFocus={true}
                 enableVoice={true}
             />
             <div className="mt-3 flex items-start gap-2 text-xs text-slate-400 px-1 justify-center">
                 <AlertCircle className="w-3 h-3 mt-0.5 text-indigo-400 flex-shrink-0" />
-                <p>AI can make mistakes. You can ask to <b>generate images</b> or <b>edit them</b>.</p>
+                <p>AI will test your choices. You can say <b>"Generate image of..."</b> to visualize ideas.</p>
             </div>
         </div>
     </div>
