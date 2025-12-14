@@ -12,7 +12,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
       
       {/* Hero Section */}
       <div className="text-center max-w-3xl mx-auto mb-12">
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/60 backdrop-blur-sm text-emerald-700 text-xs font-bold rounded-full mb-6 border border-white shadow-sm animate-bounce-slow">
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/60 backdrop-blur-sm text-emerald-700 text-xs font-bold rounded-full mb-3 border border-white shadow-sm animate-bounce-slow">
             <Sparkles className="w-3 h-3 text-emerald-500" /> 
             <span>Powered by Google Gemini 3 Pro</span>
         </div>

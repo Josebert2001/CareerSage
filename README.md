@@ -5,6 +5,8 @@
 
 CareerSage is a next-generation career counseling platform built with the latest **Google Gemini Models**. It moves beyond generic personality quizzes to provide deep, narrative-driven guidance that respects the user's cultural context, financial reality, and personal story.
 
+![CareerSage Banner](https://via.placeholder.com/1200x400?text=CareerSage:+Design+Your+Future+With+Intelligence)
+
 ## 🌟 Key Features
 
 ### 1. 🧠 Smart Advisor (Gemini 3 Pro)
@@ -26,7 +28,7 @@ Have a natural, real-time conversation with an empathetic career counselor.
 ### 3. 🎮 Career Simulator (Flash 2.5 + Image)
 Experience a "Day in the Life" of any job before you commit.
 - **Interactive Roleplay**: `gemini-2.5-flash` orchestrates realistic workplace scenarios based on the user's context.
-- **Generative Visuals**: Uses `gemini-2.5-flash-image` (Nano Banana) to generate images of the workplace or tasks on the fly (e.g., "Show me the broken circuit board").
+- **Generative Visuals**: Uses `gemini-2.5-flash-image` to generate images of the workplace or tasks on the fly (e.g., "Show me the broken circuit board").
 - **Image Editing**: Users can refine the simulation visuals using natural language (e.g., "Add a retro filter", "Remove the person in the background").
 
 ### 4. 🕵️ Agentic Chat (Research)
@@ -38,13 +40,23 @@ A dedicated research assistant for specific queries.
 - **Local Storage**: Automatically saves your Advisor plans and Chat sessions.
 - **Restore**: revisit previous advice or continue a research chat later.
 
+## 💎 Gemini API Features Implemented
+
+| Feature | Model / Tool | Usage |
+| :--- | :--- | :--- |
+| **Reasoning Engine** | `gemini-3-pro-preview` | Analyzes complex user profiles, documents, and generates dual-pathway career strategies. |
+| **Multimodal Live** | `gemini-2.5-flash-native-audio-preview` | Powers the real-time, low-latency Voice Mode for conversational guidance. |
+| **Visual Imagination** | `gemini-3-pro-image-preview` | Generates high-fidelity "Future Self" polaroids to inspire users. |
+| **Simulation Logic** | `gemini-2.5-flash` | Orchestrates the "Day in the Life" roleplay scenarios. |
+| **Real-time Visuals** | `gemini-2.5-flash-image` | Generates and edits workplace images on the fly during simulations. |
+| **Grounding** | `tools: [{ googleSearch: {} }]` | Used in Agentic Chat and Voice Mode to verify facts (salaries, dates). |
+| **Function Calling** | `tools: functionDeclarations` | Used in the Simulator to trigger image generation and edits programmatically. |
+
 ## 🛠️ Tech Stack
 
-- **Reasoning**: `gemini-3-pro-preview`
-- **Voice/Audio**: `gemini-2.5-flash-native-audio-preview-09-2025`
-- **High-Fidelity Images**: `gemini-3-pro-image-preview`
-- **Fast Multimodal (Text/Image)**: `gemini-2.5-flash` & `gemini-2.5-flash-image`
 - **Frontend**: React 18, TypeScript, Tailwind CSS
+- **AI Integration**: Google GenAI SDK (`@google/genai`)
+- **Audio Processing**: Web Audio API (Raw PCM processing for Live API)
 - **Visualization**: Recharts
 - **Icons**: Lucide React
 
@@ -52,6 +64,7 @@ A dedicated research assistant for specific queries.
 
 ### Prerequisites
 - A **Google Gemini API Key** with access to the models listed above.
+- Node.js installed (v16+).
 
 ### Installation
 
@@ -66,7 +79,7 @@ A dedicated research assistant for specific queries.
    ```
 
 3. **Set up Environment**:
-   Create a `.env` file in the root:
+   Create a `.env` file in the root directory (or configure your environment variables):
    ```env
    API_KEY=your_gemini_api_key_here
    ```

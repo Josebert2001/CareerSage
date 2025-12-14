@@ -340,7 +340,7 @@ const App: React.FC = () => {
       <footer className="py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs font-medium text-slate-400">
-            Built for the Google DeepMind Vibe Code Hackathon
+            Built by Gemini 3 Pro 
           </p>
         </div>
       </footer>
