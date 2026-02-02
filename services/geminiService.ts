@@ -75,10 +75,8 @@ export const generateCareerAdvice = async (
   }
 
   const ai = new GoogleGenAI({ apiKey });
-  // Switched to Gemini 3 Pro for superior reasoning capabilities
   const modelName = "gemini-3-pro-preview"; 
 
-  // Prepare input parts
   const analysisParts: any[] = [];
   if (files && files.length > 0) {
     files.forEach(file => {
@@ -89,10 +87,8 @@ export const generateCareerAdvice = async (
   }
   analysisParts.push({ text: `Student Scenario: ${textInput}` });
 
-  // --- STEP 1: ANALYSIS ---
   let analysisResult: any;
   try {
-    console.log("Step 1: Analyzing Profile with Gemini 3 Pro...");
     const analysisResponse = await ai.models.generateContent({
       model: modelName,
       contents: [{ role: "user", parts: analysisParts }],
@@ -111,9 +107,6 @@ export const generateCareerAdvice = async (
     throw new Error("Failed to analyze profile. Please try again.");
   }
 
-  // --- STEP 2 & 3: PATHWAY GENERATION (PARALLEL) ---
-  console.log("Step 2: Generating Pathways...");
-  
   const generatePathway = async (title: string, type: 'Practical' | 'Growth'): Promise<Pathway> => {
     const prompt = `
       Create a detailed ${type} Career Pathway for the role: "${title}".
@@ -126,7 +119,6 @@ export const generateCareerAdvice = async (
       - Be realistic for the African/Nigerian context if applicable.
       - Estimate salary ranges in local currency based on your knowledge.
       - Keep text concise and actionable.
-      - Do NOT use placeholder values (e.g., 0, "TBD"). Estimate best available data.
     `;
 
     const response = await ai.models.generateContent({
@@ -164,8 +156,6 @@ export const generateCareerAdvice = async (
   }
 };
 
-// --- VISION GENERATOR (IMAGE) ---
-
 export const generateFutureVision = async (
   role: string, 
   userContext: string
@@ -174,71 +164,42 @@ export const generateFutureVision = async (
   const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `
-    Generate a high-quality, photorealistic image of a young professional working as a ${role} in a modern African context (e.g. Lagos, Nairobi, or general urban setting).
-    
-    User Context for personalization: ${userContext}
-    
-    The image should be inspiring, warm, and professional. 
-    Also, provide a short, 1-sentence motivational caption about their future success in this role.
+    Generate a photorealistic image of a professional working as a ${role} in a modern African urban context.
+    Context: ${userContext}
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: 'gemini-3-pro-image-preview', // High quality image model
-      contents: {
-        parts: [{ text: prompt }],
-      },
-      config: {
-        imageConfig: {
-          aspectRatio: "1:1",
-          imageSize: "1K"
-        }
-      },
+      model: 'gemini-3-pro-image-preview',
+      contents: { parts: [{ text: prompt }] },
+      config: { imageConfig: { aspectRatio: "1:1", imageSize: "1K" } },
     });
 
     let imageData = "";
     let caption = `Your future as a ${role} looks bright.`;
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) {
-        imageData = part.inlineData.data;
-      } else if (part.text) {
-        caption = part.text;
-      }
+      if (part.inlineData) imageData = part.inlineData.data;
+      else if (part.text) caption = part.text;
     }
-
     if (!imageData) throw new Error("No image generated");
-
     return { imageData, caption };
   } catch (e) {
-    console.error("Image gen failed", e);
     throw e;
   }
 };
 
-// --- SIMULATION IMAGE GENERATION (FLASH 2.5) ---
-
 export const generateSimulationImage = async (prompt: string): Promise<string> => {
   if (!apiKey) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey });
-
-  console.log("Generating simulation image with Gemini 2.5 Flash Image:", prompt);
-  
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
-    contents: {
-      parts: [{ text: prompt }]
-    }
+    contents: { parts: [{ text: prompt }] }
   });
-
   let imageData = "";
   for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) {
-      imageData = part.inlineData.data;
-      break;
-    }
+    if (part.inlineData) { imageData = part.inlineData.data; break; }
   }
-
   if (!imageData) throw new Error("Failed to generate image.");
   return imageData;
 };
@@ -246,9 +207,6 @@ export const generateSimulationImage = async (prompt: string): Promise<string> =
 export const editSimulationImage = async (base64Image: string, instruction: string): Promise<string> => {
   if (!apiKey) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey });
-
-  console.log("Editing simulation image with Gemini 2.5 Flash Image:", instruction);
-
   const response = await ai.models.generateContent({
     model: 'gemini-2.5-flash-image',
     contents: {
@@ -258,106 +216,64 @@ export const editSimulationImage = async (base64Image: string, instruction: stri
       ]
     }
   });
-
   let imageData = "";
   for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) {
-      imageData = part.inlineData.data;
-      break;
-    }
+    if (part.inlineData) { imageData = part.inlineData.data; break; }
   }
-
   if (!imageData) throw new Error("Failed to edit image.");
   return imageData;
 };
 
-// --- AGENTIC CHAT ---
-
 export const getChatSession = (): Chat => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
+  if (!apiKey) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey });
-  
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
-      systemInstruction: `You are CareerSage's Agentic Assistant. 
-      - Help the user by researching specific questions about scholarships, job markets, or education.
-      - You have access to Google Search. USE IT proactively when asked for facts, dates, or prices.
-      - Be concise, warm, and helpful.
-      - Do NOT make up URLs. Only provide links found via the search tool.`,
-      tools: [{ googleSearch: {} }] // Agentic Capability
+      systemInstruction: `You are CareerSage's Agentic Assistant. Use Google Search proactively.`,
+      tools: [{ googleSearch: {} }]
     }
   });
 };
 
-// --- SIMULATION ENGINE ---
-
 export const createSimulationSession = (role: string, context: string): Chat => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
+  if (!apiKey) throw new Error("API Key is missing.");
   const ai = new GoogleGenAI({ apiKey });
 
-  // Define tools for image generation and editing
-  const tools: Tool[] = [
-    {
-      functionDeclarations: [
-        {
-          name: "generate_image",
-          description: "Generate a realistic image of the current scene, object, or person. Use this to establish the setting or show the result of an action.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              prompt: { type: Type.STRING, description: "Detailed visual description of the scene." }
-            },
-            required: ["prompt"]
-          }
-        },
-        {
-          name: "edit_image",
-          description: "Edit the PREVIOUSLY shown image based on the user's action. Use this to show changes, fixes, or worsening conditions.",
-          parameters: {
-            type: Type.OBJECT,
-            properties: {
-              instruction: { type: Type.STRING, description: "Instruction for editing the image (e.g. 'Make the screen red with error', 'Fix the broken pipe')." }
-            },
-            required: ["instruction"]
-          }
+  const tools: Tool[] = [{
+    functionDeclarations: [
+      {
+        name: "generate_image",
+        description: "Generate an image of the current scene.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: { prompt: { type: Type.STRING } },
+          required: ["prompt"]
         }
-      ]
-    }
-  ];
+      },
+      {
+        name: "edit_image",
+        description: "Edit the existing image.",
+        parameters: {
+          type: Type.OBJECT,
+          properties: { instruction: { type: Type.STRING } },
+          required: ["instruction"]
+        }
+      }
+    ]
+  }];
   
   return ai.chats.create({
-    model: 'gemini-2.5-flash', // Flash for lower latency in roleplay and orchestration
+    model: 'gemini-3-pro-preview', // Switched to Pro for better function handling
     config: {
       tools: tools,
       systemInstruction: `
-        You are the "Career Dungeon Master". Run a high-stakes, interactive job simulation for a ${role}.
+        You are the "Career Dungeon Master". Run an interactive job simulation for a ${role}.
         User Context: ${context}.
-
-        OBJECTIVE:
-        Simulate a "Day in the Life" that tests the user's decision-making, ethics, and competence.
-
-        NARRATIVE FLOW:
-        1. **The Setup**: Begin immediately. \`generate_image\` of the workspace (POV). Describe the setting and the first task.
-        2. **The Complication**: Introduce a complex problem (e.g. equipment failure, difficult client, safety hazard, ethical dilemma).
-        3. **Decision Points (CRITICAL)**: 
-           - Present clear choices or open-ended problems.
-           - *Example*: "The server room is overheating (Image). Do you (A) Shut down the core system (safe but costly) or (B) Try to patch the cooling live (risky)?"
-        4. **Visual Consequences**: 
-           - **If the user succeeds**: Use \`edit_image\` or \`generate_image\` to show the fixed state or reward.
-           - **If the user fails**: Use \`generate_image\` to show the disaster (e.g., smoke, blue screen of death, angry boss face).
-        5. **Evaluation**: After ~6 interactions, end with a "Performance Review": Score /100 and Feedback.
-
-        BEHAVIOR RULES:
-        - **Visual First**: Use tools frequently. The user should *see* the result of their actions.
-        - **Editing**: If the user says "fix the logo" or "clean the desk", use \`edit_image\`.
-        - **Adaptability**: If the user does something unexpected, roll with it and generate consequences.
-        - **Tone**: Professional, immersive, and sometimes urgent.
-        - **Context**: Ensure scenarios fit the African/Nigerian context (e.g. dealing with power/internet constraints).
+        RULES:
+        1. Always start with a scene description and call generate_image.
+        2. Present high-stakes choices.
+        3. Use edit_image to show results of user actions.
       `
     }
   });

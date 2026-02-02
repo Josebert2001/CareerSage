@@ -1,106 +1,58 @@
 
 # CareerSage - AI Career Counselor
 
-**Empowering students in Nigeria & Africa with realistic, human-centered career guidance.**
+**Bridging the gap between dreams and reality for students in Africa and beyond.**
 
-CareerSage is a next-generation career counseling platform built with the latest **Google Gemini Models**. It moves beyond generic personality quizzes to provide deep, narrative-driven guidance that respects the user's cultural context, financial reality, and personal story.
-
-![CareerSage Banner](https://via.placeholder.com/1200x400?text=CareerSage:+Design+Your+Future+With+Intelligence)
-
-## 🌟 Key Features
-
-### 1. 🧠 Smart Advisor (Gemini 3 Pro)
-The core planning engine that analyzes your profile to create a comprehensive roadmap.
-- **Deep Reasoning**: Uses `gemini-3-pro-preview` to analyze complex user stories, constraints, and uploaded documents (CVs, transcripts).
-- **Dual-Pathway System**: Generates two distinct plans:
-  - **Practical Pathway**: A "Start Now" plan (6-18 months) for immediate stability.
-  - **Growth Pathway**: An aspirational vision (3-5 years) for long-term fulfillment.
-- **Visual Analytics**: Dynamic charts for Salary Ranges and gauges for Market Demand.
-- **Future Vision**: Uses `gemini-3-pro-image-preview` to generate a photorealistic "Polaroid" of your future self in the role to inspire confidence.
-
-### 2. 🎙️ Voice Mode (Gemini Live)
-Have a natural, real-time conversation with an empathetic career counselor.
-- **Multimodal Audio**: Powered by `gemini-2.5-flash-native-audio-preview`.
-- **Context Aware**: Reads your profile setup to ask relevant questions.
-- **Search Grounding**: The voice assistant can look up real-time facts (e.g., "When is the next JAMB exam?", "Current exchange rates") during the call.
-- **Low Latency**: Built on WebSocket technology for fluid, interruption-friendly dialogue.
-
-### 3. 🎮 Career Simulator (Flash 2.5 + Image)
-Experience a "Day in the Life" of any job before you commit.
-- **Interactive Roleplay**: `gemini-2.5-flash` orchestrates realistic workplace scenarios based on the user's context.
-- **Generative Visuals**: Uses `gemini-2.5-flash-image` to generate images of the workplace or tasks on the fly (e.g., "Show me the broken circuit board").
-- **Image Editing**: Users can refine the simulation visuals using natural language (e.g., "Add a retro filter", "Remove the person in the background").
-
-### 4. 🕵️ Agentic Chat (Research)
-A dedicated research assistant for specific queries.
-- **Fact-Checking**: Uses **Google Search** tools to verify scholarship deadlines, tuition fees, and job market trends.
-- **Source Citations**: Provides direct links to verified sources.
-
-### 5. 💾 Session History
-- **Local Storage**: Automatically saves your Advisor plans and Chat sessions.
-- **Restore**: revisit previous advice or continue a research chat later.
-
-## 💎 Gemini API Features Implemented
-
-| Feature | Model / Tool | Usage |
-| :--- | :--- | :--- |
-| **Reasoning Engine** | `gemini-3-pro-preview` | Analyzes complex user profiles, documents, and generates dual-pathway career strategies. |
-| **Multimodal Live** | `gemini-2.5-flash-native-audio-preview` | Powers the real-time, low-latency Voice Mode for conversational guidance. |
-| **Visual Imagination** | `gemini-3-pro-image-preview` | Generates high-fidelity "Future Self" polaroids to inspire users. |
-| **Simulation Logic** | `gemini-2.5-flash` | Orchestrates the "Day in the Life" roleplay scenarios. |
-| **Real-time Visuals** | `gemini-2.5-flash-image` | Generates and edits workplace images on the fly during simulations. |
-| **Grounding** | `tools: [{ googleSearch: {} }]` | Used in Agentic Chat and Voice Mode to verify facts (salaries, dates). |
-| **Function Calling** | `tools: functionDeclarations` | Used in the Simulator to trigger image generation and edits programmatically. |
-
-## 🛠️ Tech Stack
-
-- **Frontend**: React 18, TypeScript, Tailwind CSS
-- **AI Integration**: Google GenAI SDK (`@google/genai`)
-- **Audio Processing**: Web Audio API (Raw PCM processing for Live API)
-- **Visualization**: Recharts
-- **Icons**: Lucide React
-
-## 🚀 Getting Started
-
-### Prerequisites
-- A **Google Gemini API Key** with access to the models listed above.
-- Node.js installed (v16+).
-
-### Installation
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/yourusername/careersage.git
-   ```
-
-2. **Install dependencies**:
-   ```bash
-   npm install
-   ```
-
-3. **Set up Environment**:
-   Create a `.env` file in the root directory (or configure your environment variables):
-   ```env
-   API_KEY=your_gemini_api_key_here
-   ```
-
-4. **Run Development Server**:
-   ```bash
-   npm run dev
-   ```
-
-## 🌍 Cultural Context
-
-CareerSage is specifically tuned for the **Nigerian/African** market. It understands:
-- **Education Systems**: JAMB, WAEC, NECO, Poly vs. University (HND/BSc).
-- **Economic Realities**: Inflation, side hustles, remote work opportunities.
-- **Infrastructure**: Power/Internet constraints impacting career choices.
-
-## 🛡️ Privacy & Safety
-
-- **Client-Side Processing**: User data is processed directly via the API; no intermediate database storage.
-- **Disclaimer**: The app clearly states it provides educational guidance, not professional legal or financial advice.
+CareerSage is a comprehensive AI career guidance system built on the **Google Gemini 3** ecosystem. It provides culturally aware, realistic career paths using deep reasoning, multimodality, and real-time data grounding.
 
 ---
 
-**Built for the "Vibe Code with Gemini 3 Pro" Hackathon**
+## 🚀 Advanced Architecture
+
+CareerSage uses a multi-model orchestration strategy to deliver a high-fidelity experience:
+
+### 1. The Strategy Engine (Gemini 3 Pro)
+The core "Advisor" uses **`gemini-3-pro-preview`** to process complex inputs, including CVs and academic transcripts. It generates a "Dual-Pathway" roadmap:
+- **Practical Route**: Focused on 6-12 month employability.
+- **Growth Route**: Focused on 3-5 year aspirational success.
+
+### 2. The Job Simulator (Pro + Flash Image)
+Experience a "Day in the Life" of any profession.
+- **Narrative Logic**: Powered by **`gemini-3-pro-preview`** for high-stakes decision branching.
+- **Visuals**: Powered by **`gemini-2.5-flash-image`** for on-the-fly workplace visualization and interactive editing (e.g., "Change the weather in the scene").
+
+### 3. Voice Mode (Live API)
+Talk naturally with an empathetic counselor.
+- **Model**: **`gemini-2.5-flash-native-audio-preview-12-2025`**.
+- **Features**: Interruption-friendly, low-latency raw PCM audio streaming with Google Search grounding.
+
+### 4. Agentic Research (Search Tool)
+Verify facts about scholarships, schools, and salaries.
+- **Model**: **`gemini-3-pro-preview`** with **`googleSearch`** integration.
+
+---
+
+## 🛠️ Technical Setup
+
+### Prerequisites
+- Node.js 18+
+- Gemini API Key with access to Gemini 3 series models.
+
+### Environment Variables
+The application expects an `API_KEY` in the execution environment.
+
+### Simulator Troubleshooting
+If the simulation images do not appear:
+1. Ensure your API key has access to the `gemini-2.5-flash-image` model.
+2. The simulator requires a valid function-calling handshake. CareerSage handles this using the latest SDK protocols including `functionCall.id` mapping.
+
+---
+
+## 🌍 Social Impact: The Africa Focus
+CareerSage is specifically tuned to understand:
+- **Education Systems**: JAMB, WAEC, NECO, and the dichotomy between Polytechnic (HND) and University (BSc).
+- **Economic Realities**: Power instability, internet costs, and the need for remote side-hustles.
+- **NYSC**: The mandatory service year in Nigeria and how to plan around it.
+
+---
+*Built for the Google Gemini Build Challenge.*
