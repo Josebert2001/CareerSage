@@ -3,7 +3,20 @@ import { GoogleGenAI, Type, Schema, Chat, FunctionDeclaration, Tool } from "@goo
 import { ANALYSIS_PROMPT } from "../constants";
 import { CareerAdviceResponse, FileData, Pathway, FutureVision } from "../types";
 
-const apiKey = process.env.API_KEY;
+// Helper to remove markdown code blocks
+const cleanJson = (text: string): string => {
+  return text.replace(/```json\n?|```/g, '').trim();
+};
+
+const handleApiError = async (error: any) => {
+  const msg = error?.message || "";
+  if (msg.includes("Requested entity was not found") || msg.includes("403") || msg.includes("permission")) {
+    if (window.aistudio?.openSelectKey) {
+      await window.aistudio.openSelectKey();
+    }
+  }
+  throw error;
+};
 
 // --- SCHEMAS ---
 
@@ -61,20 +74,11 @@ const pathwaySchema: Schema = {
   required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "realityCheck", "salaryRange", "demandScore", "growthScore"]
 };
 
-// Helper to remove markdown code blocks if the model includes them
-const cleanJson = (text: string): string => {
-  return text.replace(/```json\n?|```/g, '').trim();
-};
-
 export const generateCareerAdvice = async (
   textInput: string,
   files: FileData[]
 ): Promise<CareerAdviceResponse> => {
-  if (!apiKey) {
-    throw new Error("API Key is missing.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const modelName = "gemini-3-pro-preview"; 
 
   const analysisParts: any[] = [];
@@ -103,36 +107,32 @@ export const generateCareerAdvice = async (
     if (!analysisResponse.text) throw new Error("Empty response from AI");
     analysisResult = JSON.parse(cleanJson(analysisResponse.text));
   } catch (error) {
-    console.error("Step 1 Failed:", error);
-    throw new Error("Failed to analyze profile. Please try again.");
+    console.error("Analysis Failed:", error);
+    return handleApiError(error);
   }
 
   const generatePathway = async (title: string, type: 'Practical' | 'Growth'): Promise<Pathway> => {
     const prompt = `
       Create a detailed ${type} Career Pathway for the role: "${title}".
-      
-      Student Context:
-      ${JSON.stringify(analysisResult.studentProfile)}
-      ${analysisResult.contextAnalysis}
-      
-      Requirements:
-      - Be realistic for the African/Nigerian context if applicable.
-      - Estimate salary ranges in local currency based on your knowledge.
-      - Keep text concise and actionable.
+      Student Context: ${JSON.stringify(analysisResult.studentProfile)}
     `;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: pathwaySchema,
-        temperature: 0.4,
-      }
-    });
-    
-    if (!response.text) throw new Error("Empty pathway response");
-    return JSON.parse(cleanJson(response.text)) as Pathway;
+    try {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: pathwaySchema,
+          temperature: 0.4,
+        }
+      });
+      
+      if (!response.text) throw new Error("Empty pathway response");
+      return JSON.parse(cleanJson(response.text)) as Pathway;
+    } catch (e) {
+      return handleApiError(e);
+    }
   };
 
   try {
@@ -147,12 +147,10 @@ export const generateCareerAdvice = async (
       reflection: analysisResult.reflection,
       practicalPathway,
       growthPathway,
-      closingMessage: "Your personalized career roadmap is ready. Remember, these are starting points—your journey is yours to define."
+      closingMessage: "Your personalized career roadmap is ready."
     };
-
   } catch (error) {
-    console.error("Step 2 Failed:", error);
-    throw new Error("Failed to generate detailed pathways. Please try again.");
+    return handleApiError(error);
   }
 };
 
@@ -160,13 +158,9 @@ export const generateFutureVision = async (
   role: string, 
   userContext: string
 ): Promise<FutureVision> => {
-  if (!apiKey) throw new Error("API Key is missing.");
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  const prompt = `
-    Generate a photorealistic image of a professional working as a ${role} in a modern African urban context.
-    Context: ${userContext}
-  `;
+  const prompt = `Generate a photorealistic image of a professional working as a ${role}. Context: ${userContext}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -185,48 +179,51 @@ export const generateFutureVision = async (
     if (!imageData) throw new Error("No image generated");
     return { imageData, caption };
   } catch (e) {
-    throw e;
+    return handleApiError(e);
   }
 };
 
 export const generateSimulationImage = async (prompt: string): Promise<string> => {
-  if (!apiKey) throw new Error("API Key is missing.");
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
-    contents: { parts: [{ text: prompt }] }
-  });
-  let imageData = "";
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) { imageData = part.inlineData.data; break; }
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: { parts: [{ text: prompt }] }
+    });
+    let imageData = "";
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) { imageData = part.inlineData.data; break; }
+    }
+    return imageData;
+  } catch (e) {
+    return handleApiError(e);
   }
-  if (!imageData) throw new Error("Failed to generate image.");
-  return imageData;
 };
 
 export const editSimulationImage = async (base64Image: string, instruction: string): Promise<string> => {
-  if (!apiKey) throw new Error("API Key is missing.");
-  const ai = new GoogleGenAI({ apiKey });
-  const response = await ai.models.generateContent({
-    model: 'gemini-2.5-flash-image',
-    contents: {
-      parts: [
-        { inlineData: { mimeType: 'image/png', data: base64Image } },
-        { text: instruction }
-      ]
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [
+          { inlineData: { mimeType: 'image/png', data: base64Image } },
+          { text: instruction }
+        ]
+      }
+    });
+    let imageData = "";
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+      if (part.inlineData) { imageData = part.inlineData.data; break; }
     }
-  });
-  let imageData = "";
-  for (const part of response.candidates?.[0]?.content?.parts || []) {
-    if (part.inlineData) { imageData = part.inlineData.data; break; }
+    return imageData;
+  } catch (e) {
+    return handleApiError(e);
   }
-  if (!imageData) throw new Error("Failed to edit image.");
-  return imageData;
 };
 
 export const getChatSession = (): Chat => {
-  if (!apiKey) throw new Error("API Key is missing.");
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
@@ -237,8 +234,7 @@ export const getChatSession = (): Chat => {
 };
 
 export const createSimulationSession = (role: string, context: string): Chat => {
-  if (!apiKey) throw new Error("API Key is missing.");
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const tools: Tool[] = [{
     functionDeclarations: [
@@ -264,17 +260,10 @@ export const createSimulationSession = (role: string, context: string): Chat => 
   }];
   
   return ai.chats.create({
-    model: 'gemini-3-pro-preview', // Switched to Pro for better function handling
+    model: 'gemini-3-pro-preview',
     config: {
       tools: tools,
-      systemInstruction: `
-        You are the "Career Dungeon Master". Run an interactive job simulation for a ${role}.
-        User Context: ${context}.
-        RULES:
-        1. Always start with a scene description and call generate_image.
-        2. Present high-stakes choices.
-        3. Use edit_image to show results of user actions.
-      `
+      systemInstruction: `Interactive job simulation for a ${role}. Context: ${context}.`
     }
   });
 };

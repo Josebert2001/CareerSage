@@ -1,10 +1,10 @@
 
-import React, { useEffect, useRef, useState } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
-import { Mic, MicOff, PhoneOff, Radio, Volume2, FileText } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { FileText, Mic, MicOff, PhoneOff, Radio } from 'lucide-react';
 import { LIVE_SYSTEM_PROMPT } from '../constants';
-import { arrayBufferToBase64, base64ToArrayBuffer, float32To16BitPCM, pcmToAudioBuffer } from '../utils/audio';
 import { UserProfile } from '../types';
+import { arrayBufferToBase64, base64ToArrayBuffer, float32To16BitPCM, pcmToAudioBuffer } from '../utils/audio';
 
 interface VoiceSessionProps {
   onEndSession: () => void;
@@ -18,7 +18,6 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
   const [volume, setVolume] = useState(0);
 
-  // Audio Contexts & Nodes
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
   const inputSourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
@@ -27,63 +26,47 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   const analyzerRef = useRef<AnalyserNode | null>(null);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Session & Playback State
   const sessionPromiseRef = useRef<Promise<any> | null>(null);
   const nextStartTimeRef = useRef<number>(0);
   const scheduledSourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
-  const apiKey = process.env.API_KEY;
 
   useEffect(() => {
     startSession();
     return () => {
       cleanupSession();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startSession = async () => {
-    if (!apiKey) {
-      setStatus('error');
-      return;
-    }
-
     try {
       setStatus('connecting');
-      const ai = new GoogleGenAI({ apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-      // Initialize Audio Contexts
-      // Input: 16kHz for Gemini
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      // Output: 24kHz from Gemini
       outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       
-      // Safety: Resume contexts if suspended (browser autoplay policy)
       if (inputAudioContextRef.current.state === 'suspended') await inputAudioContextRef.current.resume();
       if (outputAudioContextRef.current.state === 'suspended') await outputAudioContextRef.current.resume();
 
       outputNodeRef.current = outputAudioContextRef.current.createGain();
       outputNodeRef.current.connect(outputAudioContextRef.current.destination);
 
-      // Setup Analyzer for visualizer
       analyzerRef.current = outputAudioContextRef.current.createAnalyser();
       analyzerRef.current.fftSize = 256;
       outputNodeRef.current.connect(analyzerRef.current);
       startVisualizer();
 
-      // Get Microphone Stream
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       
-      // Build Context String from Profile
       const profileContext = userProfile.name 
         ? `\n\nUSER PROFILE DATA:\n${JSON.stringify(userProfile, null, 2)}` 
-        : '\n\nUSER PROFILE: The user has not filled out the text form yet. Ask for their name and situation.';
+        : '\n\nUSER PROFILE: Fresh user.';
 
-      // Connect to Live API
       sessionPromiseRef.current = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
         config: {
           systemInstruction: LIVE_SYSTEM_PROMPT + profileContext,
-          tools: [{ googleSearch: {} }], // Enable Search Grounding for Voice
+          tools: [{ googleSearch: {} }],
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
@@ -91,7 +74,6 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
         },
         callbacks: {
           onopen: () => {
-            console.log('Voice session opened');
             setStatus('connected');
             setIsConnected(true);
             setupAudioInput(stream);
@@ -100,13 +82,15 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
             await handleServerMessage(message);
           },
           onclose: () => {
-            console.log('Voice session closed');
             setStatus('disconnected');
             setIsConnected(false);
           },
-          onerror: (err) => {
+          onerror: async (err) => {
             console.error('Voice session error:', err);
             setStatus('error');
+            if (window.aistudio?.openSelectKey) {
+                await window.aistudio.openSelectKey();
+            }
           }
         }
       });
@@ -119,50 +103,34 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
 
   const setupAudioInput = (stream: MediaStream) => {
     if (!inputAudioContextRef.current) return;
-
     inputSourceRef.current = inputAudioContextRef.current.createMediaStreamSource(stream);
-    // Buffer size 4096, 1 input channel, 1 output channel
     processorRef.current = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
-
     processorRef.current.onaudioprocess = (e) => {
       if (isMuted) return;
-
       const inputData = e.inputBuffer.getChannelData(0);
-      // Convert Float32 to Int16 PCM ArrayBuffer
       const pcm16 = float32To16BitPCM(inputData);
-      // Convert to Base64
       const base64Data = arrayBufferToBase64(new Uint8Array(pcm16));
-
       sessionPromiseRef.current?.then((session) => {
         session.sendRealtimeInput({
-          media: {
-            mimeType: 'audio/pcm;rate=16000',
-            data: base64Data
-          }
+          media: { mimeType: 'audio/pcm;rate=16000', data: base64Data }
         });
       });
     };
-
     inputSourceRef.current.connect(processorRef.current);
     processorRef.current.connect(inputAudioContextRef.current.destination);
   };
 
   const handleServerMessage = async (message: LiveServerMessage) => {
     const serverContent = message.serverContent;
-
-    // Handle Interruption (User spoke while AI was speaking)
     if (serverContent?.interrupted) {
       stopAllScheduledAudio();
       return;
     }
-
-    // Handle Audio Output
     const modelTurn = serverContent?.modelTurn;
     if (modelTurn?.parts) {
       for (const part of modelTurn.parts) {
         if (part.inlineData && part.inlineData.data) {
-          const base64Audio = part.inlineData.data;
-          await queueAudioChunk(base64Audio);
+          await queueAudioChunk(part.inlineData.data);
         }
       }
     }
@@ -170,50 +138,25 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
 
   const queueAudioChunk = async (base64Audio: string) => {
     if (!outputAudioContextRef.current || !outputNodeRef.current) return;
-
     const ctx = outputAudioContextRef.current;
-    
-    // Ensure context is running (safety double-check)
-    if (ctx.state === 'suspended') {
-        try { await ctx.resume(); } catch(e) { console.warn(e); }
-    }
-
+    if (ctx.state === 'suspended') await ctx.resume();
     const audioBytes = base64ToArrayBuffer(base64Audio);
-    
     try {
       const audioBuffer = await pcmToAudioBuffer(audioBytes, ctx, 24000);
-      
-      // Schedule playback
       const source = ctx.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(outputNodeRef.current);
-
-      // Determine start time (cursor)
       const currentTime = ctx.currentTime;
-      if (nextStartTimeRef.current < currentTime) {
-        nextStartTimeRef.current = currentTime;
-      }
-
+      if (nextStartTimeRef.current < currentTime) nextStartTimeRef.current = currentTime;
       source.start(nextStartTimeRef.current);
       nextStartTimeRef.current += audioBuffer.duration;
-
-      // Track source for cancellation
       scheduledSourcesRef.current.add(source);
-      source.onended = () => {
-        scheduledSourcesRef.current.delete(source);
-      };
-
-    } catch (e) {
-      console.error("Error decoding audio chunk", e);
-    }
+      source.onended = () => scheduledSourcesRef.current.delete(source);
+    } catch (e) { console.error(e); }
   };
 
   const stopAllScheduledAudio = () => {
-    scheduledSourcesRef.current.forEach(source => {
-      try {
-        source.stop();
-      } catch (e) { /* ignore already stopped */ }
-    });
+    scheduledSourcesRef.current.forEach(source => { try { source.stop(); } catch (e) {} });
     scheduledSourcesRef.current.clear();
     nextStartTimeRef.current = 0;
   };
@@ -223,37 +166,26 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
       if (analyzerRef.current) {
         const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
         analyzerRef.current.getByteFrequencyData(dataArray);
-        // Calculate average volume
-        const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-        setVolume(avg);
+        setVolume(dataArray.reduce((a, b) => a + b) / dataArray.length);
       }
       animationFrameRef.current = requestAnimationFrame(update);
     };
     update();
   };
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted);
-  };
-
   const cleanupSession = () => {
     if (animationFrameRef.current) cancelAnimationFrame(animationFrameRef.current);
-    
     sessionPromiseRef.current?.then(session => session.close()).catch(() => {});
-    
     if (inputSourceRef.current) inputSourceRef.current.disconnect();
     if (processorRef.current) processorRef.current.disconnect();
     if (inputAudioContextRef.current) inputAudioContextRef.current.close();
     if (outputAudioContextRef.current) outputAudioContextRef.current.close();
-    
     stopAllScheduledAudio();
   };
 
-  // UI Components
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fadeIn p-6">
       <div className="relative mb-12">
-        {/* Visualizer Circle */}
         <div 
           className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-100 ease-out border-4 ${
             status === 'connected' ? 'border-emerald-500/30' : 'border-slate-200'
@@ -269,55 +201,13 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
             {status === 'error' && <PhoneOff className="w-16 h-16 text-red-500" />}
           </div>
         </div>
-
-        {/* Status Text */}
-        <div className="absolute -bottom-10 left-0 right-0 text-center">
-            <p className="text-lg font-medium text-slate-700">
-                {status === 'connecting' && "Connecting to CareerSage Voice..."}
-                {status === 'connected' && (isMuted ? "Microphone Muted" : `Listening to ${userProfile.name || 'Student'}...`)}
-                {status === 'error' && "Connection Failed"}
-            </p>
-        </div>
       </div>
-
-      {/* Controls */}
       <div className="flex flex-col items-center gap-6 mt-8">
         <div className="flex items-center gap-6">
-            <button
-            onClick={toggleMute}
-            className={`p-4 rounded-full transition-all ${
-                isMuted 
-                ? 'bg-red-100 text-red-600 hover:bg-red-200' 
-                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-            }`}
-            disabled={status !== 'connected'}
-            title={isMuted ? "Unmute" : "Mute"}
-            >
-            {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-            </button>
-
-            <button
-            onClick={onEndSession}
-            className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold hover:bg-red-600 shadow-lg hover:shadow-xl transition-all transform hover:scale-105 flex items-center gap-2"
-            >
-            <PhoneOff className="w-5 h-5" />
-            End Call
-            </button>
+            <button onClick={() => setIsMuted(!isMuted)} className="p-4 rounded-full bg-slate-100">{isMuted ? <MicOff /> : <Mic />}</button>
+            <button onClick={onEndSession} className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold">End Call</button>
         </div>
-
-        {status === 'connected' && (
-            <button
-                onClick={onGenerateReport}
-                className="flex items-center gap-2 px-6 py-2.5 bg-emerald-600 text-white rounded-full font-semibold shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all transform hover:-translate-y-0.5"
-            >
-                <FileText className="w-4 h-4" />
-                Generate Written Plan
-            </button>
-        )}
-      </div>
-
-      <div className="mt-8 p-4 bg-emerald-50 text-emerald-800 rounded-lg max-w-md text-center text-sm">
-        <p>Tip: I have read your profile. You can ask me to explain specific parts of it or ask for a full written report.</p>
+        {status === 'connected' && <button onClick={onGenerateReport} className="bg-emerald-600 text-white px-6 py-2.5 rounded-full">Generate Written Plan</button>}
       </div>
     </div>
   );
