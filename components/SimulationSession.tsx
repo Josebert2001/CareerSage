@@ -74,7 +74,7 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
                  let toolResultText = "";
                  
                  try {
-                    if (call.name === 'generate_image') {
+                    if (call.name === 'generate_image' && call.args) {
                         const prompt = call.args['prompt'] as string;
                         const imageData = await generateSimulationImage(prompt);
                         lastImageRef.current = imageData;
@@ -87,7 +87,7 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
                         }));
                         toolResultText = "Image generated successfully.";
                     } 
-                    else if (call.name === 'edit_image') {
+                    else if (call.name === 'edit_image' && call.args) {
                         const instruction = call.args['instruction'] as string;
                         if (!lastImageRef.current) {
                              toolResultText = "Error: No context image available.";

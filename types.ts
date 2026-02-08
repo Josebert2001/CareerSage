@@ -1,4 +1,13 @@
 
+declare global {
+  interface Window {
+    aistudio?: {
+      openSelectKey?(): Promise<void>;
+      hasSelectedApiKey?(): Promise<boolean>;
+    };
+  }
+}
+
 export interface Source {
   title: string;
   uri: string;

@@ -11,7 +11,7 @@ const cleanJson = (text: string): string => {
 const handleApiError = async (error: any) => {
   const msg = error?.message || "";
   if (msg.includes("Requested entity was not found") || msg.includes("403") || msg.includes("permission")) {
-    if (window.aistudio?.openSelectKey) {
+    if (typeof window !== 'undefined' && window.aistudio?.openSelectKey) {
       await window.aistudio.openSelectKey();
     }
   }
@@ -173,7 +173,7 @@ export const generateFutureVision = async (
     let caption = `Your future as a ${role} looks bright.`;
 
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) imageData = part.inlineData.data;
+      if (part.inlineData?.data) imageData = part.inlineData.data;
       else if (part.text) caption = part.text;
     }
     if (!imageData) throw new Error("No image generated");
@@ -192,7 +192,7 @@ export const generateSimulationImage = async (prompt: string): Promise<string> =
     });
     let imageData = "";
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) { imageData = part.inlineData.data; break; }
+      if (part.inlineData?.data) { imageData = part.inlineData.data; break; }
     }
     return imageData;
   } catch (e) {
@@ -214,7 +214,7 @@ export const editSimulationImage = async (base64Image: string, instruction: stri
     });
     let imageData = "";
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-      if (part.inlineData) { imageData = part.inlineData.data; break; }
+      if (part.inlineData?.data) { imageData = part.inlineData.data; break; }
     }
     return imageData;
   } catch (e) {

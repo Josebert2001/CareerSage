@@ -8,10 +8,10 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   const handleStart = async () => {
-    if (window.aistudio) {
-      const hasKey = await window.aistudio.hasSelectedApiKey();
+    if (typeof window !== 'undefined' && window.aistudio) {
+      const hasKey = await window.aistudio.hasSelectedApiKey?.();
       if (!hasKey) {
-        await window.aistudio.openSelectKey();
+        await window.aistudio.openSelectKey?.();
         // Proceeding immediately as per guidelines to avoid race conditions
       }
     }

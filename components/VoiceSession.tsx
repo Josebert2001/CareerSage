@@ -88,7 +88,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
           onerror: async (err) => {
             console.error('Voice session error:', err);
             setStatus('error');
-            if (window.aistudio?.openSelectKey) {
+            if (typeof window !== 'undefined' && window.aistudio?.openSelectKey) {
                 await window.aistudio.openSelectKey();
             }
           }
