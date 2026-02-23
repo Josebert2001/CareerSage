@@ -90,28 +90,67 @@ const InputForm: React.FC<InputFormProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles: FileData[] = [];
+      // Security: Validate file uploads
+      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
+      const MAX_FILES = 5;
+
       const fileList = Array.from(e.target.files) as File[];
 
+      // Check total number of files
+      if (files.length + fileList.length > MAX_FILES) {
+        console.error(`Maximum ${MAX_FILES} files allowed`);
+        alert(`You can upload a maximum of ${MAX_FILES} files`);
+        return;
+      }
+
+      let hasError = false;
+      const newFiles: FileData[] = [];
       let processedCount = 0;
+
       fileList.forEach(file => {
+        // Validate file size
+        if (file.size > MAX_FILE_SIZE) {
+          console.error(`File too large: ${file.name} (${file.size} bytes)`);
+          alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
+          hasError = true;
+          return;
+        }
+
+        // Validate file type
+        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+          console.error(`File type not allowed: ${file.type} for ${file.name}`);
+          alert(`File type not allowed for "${file.name}". Allowed: images, PDF, plain text.`);
+          hasError = true;
+          return;
+        }
+
         const reader = new FileReader();
+        reader.onerror = () => {
+          console.error(`Failed to read file: ${file.name}`);
+          hasError = true;
+        };
         reader.onload = (event) => {
-          if (event.target?.result) {
+          if (event.target?.result && !hasError) {
             const base64String = (event.target.result as string).split(',')[1];
-            newFiles.push({
-              name: file.name,
-              mimeType: file.type,
-              data: base64String
-            });
+            if (base64String) {
+              newFiles.push({
+                name: file.name,
+                mimeType: file.type,
+                data: base64String
+              });
+            }
           }
           processedCount++;
           if (processedCount === fileList.length) {
-            setFiles(prev => [...prev, ...newFiles]);
+            if (!hasError && newFiles.length > 0) {
+              setFiles(prev => [...prev, ...newFiles]);
+            }
           }
         };
         reader.readAsDataURL(file);
       });
+
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };

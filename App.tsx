@@ -12,6 +12,7 @@ import ChatSession from './components/ChatSession';
 import SimulationSession from './components/SimulationSession';
 import HistoryModal from './components/HistoryModal';
 import WelcomeScreen from './components/WelcomeScreen';
+import { TestimonialSubmission } from './components/TestimonialSubmission';
 
 const App: React.FC = () => {
   // Initialize in WELCOME state
@@ -335,6 +336,8 @@ const App: React.FC = () => {
         onClose={() => setShowHistory(false)} 
         onSelectSession={handleRestoreSession} 
       />
+
+      <TestimonialSubmission />
 
       {/* Footer */}
       <footer className="py-6 mt-auto">

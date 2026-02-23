@@ -1,0 +1,11 @@
+{
+  "testimonials": [
+    {
+      "id": 1,
+      "name": "Sample User",
+      "role": "Student",
+      "testimonial": "CareerSage helped me discover career paths I never considered. The insights were practical and actionable.",
+      "date": "2024-01-15"
+    }
+  ]
+}
