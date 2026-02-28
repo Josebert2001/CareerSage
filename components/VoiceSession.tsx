@@ -5,6 +5,7 @@ import { FileText, Mic, MicOff, PhoneOff, Radio } from 'lucide-react';
 import { LIVE_SYSTEM_PROMPT } from '../constants';
 import { UserProfile } from '../types';
 import { arrayBufferToBase64, base64ToArrayBuffer, float32To16BitPCM, pcmToAudioBuffer } from '../utils/audio';
+import { getAIClient } from '../services/geminiService';
 
 interface VoiceSessionProps {
   onEndSession: () => void;
@@ -17,6 +18,9 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   const [isMuted, setIsMuted] = useState(false);
   const [status, setStatus] = useState<'connecting' | 'connected' | 'error' | 'disconnected'>('connecting');
   const [volume, setVolume] = useState(0);
+
+  const isMutedRef = useRef(isMuted);
+  useEffect(() => { isMutedRef.current = isMuted; }, [isMuted]);
 
   const inputAudioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
@@ -40,7 +44,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   const startSession = async () => {
     try {
       setStatus('connecting');
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = getAIClient();
 
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
@@ -106,7 +110,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
     inputSourceRef.current = inputAudioContextRef.current.createMediaStreamSource(stream);
     processorRef.current = inputAudioContextRef.current.createScriptProcessor(4096, 1, 1);
     processorRef.current.onaudioprocess = (e) => {
-      if (isMuted) return;
+      if (isMutedRef.current) return;
       const inputData = e.inputBuffer.getChannelData(0);
       const pcm16 = float32To16BitPCM(inputData);
       const base64Data = arrayBufferToBase64(new Uint8Array(pcm16));
@@ -162,15 +166,20 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   };
 
   const startVisualizer = () => {
-    const update = () => {
-      if (analyzerRef.current) {
-        const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
-        analyzerRef.current.getByteFrequencyData(dataArray);
-        setVolume(dataArray.reduce((a, b) => a + b) / dataArray.length);
+    let lastTime = 0;
+    const THROTTLE_MS = 66; // ~15fps instead of 60fps
+    const update = (now: number) => {
+      if (now - lastTime >= THROTTLE_MS) {
+        lastTime = now;
+        if (analyzerRef.current) {
+          const dataArray = new Uint8Array(analyzerRef.current.frequencyBinCount);
+          analyzerRef.current.getByteFrequencyData(dataArray);
+          setVolume(dataArray.reduce((a, b) => a + b) / dataArray.length);
+        }
       }
       animationFrameRef.current = requestAnimationFrame(update);
     };
-    update();
+    animationFrameRef.current = requestAnimationFrame(update);
   };
 
   const cleanupSession = () => {

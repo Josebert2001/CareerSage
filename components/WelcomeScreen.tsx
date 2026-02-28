@@ -6,20 +6,21 @@ interface WelcomeScreenProps {
   onStart: () => void;
 }
 
+const HOOKS = [
+  "You passed WAEC. Now what?",
+  "Your parents want medicine. You want design. Who do you listen to?",
+  "NYSC is over. 200 CVs sent. Nothing back.",
+  "You got into poly. Everyone says it's not the same as uni. Is that true?",
+  "You want to study abroad but don't know where to start.",
+  "Everyone around you seems to have a plan. You don't. That's okay."
+];
+
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   const [hookIndex, setHookIndex] = useState(0);
-  const hooks = [
-    "You passed WAEC. Now what?",
-    "Your parents want medicine. You want design. Who do you listen to?",
-    "NYSC is over. 200 CVs sent. Nothing back.",
-    "You got into poly. Everyone says it's not the same as uni. Is that true?",
-    "You want to study abroad but don't know where to start.",
-    "Everyone around you seems to have a plan. You don't. That's okay."
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setHookIndex((prev) => (prev + 1) % hooks.length);
+      setHookIndex((prev) => (prev + 1) % HOOKS.length);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -39,7 +40,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
       <div className="text-center max-w-4xl mx-auto mb-16">
         <div className="h-12 mb-8 overflow-hidden">
           <p className="text-emerald-700 font-medium text-lg md:text-xl transition-all duration-500 transform translate-y-0">
-            {hooks[hookIndex]}
+            {HOOKS[hookIndex]}
           </p>
         </div>
         
@@ -65,9 +66,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
               <p className="text-sm font-bold text-emerald-900/60 uppercase tracking-widest">
                 Built by someone who grew up in this system.
               </p>
-              <p className="text-[10px] text-slate-400 max-w-xs text-center uppercase tracking-tighter">
-                A paid API key selection from <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="underline">Google Cloud</a> is required for high-fidelity features.
-              </p>
+              
             </div>
         </div>
       </div>

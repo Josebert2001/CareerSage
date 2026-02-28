@@ -5,6 +5,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CareerSage - AI Career Counselor</title>
+    <!-- Preconnect to CDN origins for faster resource loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://esm.sh" />
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -33,10 +38,12 @@
 
       .mesh-blob {
         position: fixed;
-        filter: blur(80px);
+        filter: blur(60px);
         z-index: -1;
-        opacity: 0.5;
+        opacity: 0.4;
         animation: blob-bounce 10s infinite ease-in-out;
+        will-change: transform;
+        contain: strict;
       }
       .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ecfdf5; animation-delay: 0s; } /* Soft Green */
       .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #fff7ed; animation-delay: 2s; } /* Soft Terracotta/Orange */
@@ -77,7 +84,6 @@
       }
       .animate-fadeIn {
         animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        will-change: transform, opacity;
       }
       
       @keyframes bounce-slow {
@@ -91,8 +97,8 @@
       /* Glassmorphism Utilities */
       .glass-panel {
         background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         border: 1px solid rgba(255, 255, 255, 0.5);
       }
       

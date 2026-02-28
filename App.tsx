@@ -1,17 +1,19 @@
 
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { Compass, Sparkles, Mic, MessageSquare, MessageCircle, Gamepad2, History, Zap } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData, UserProfile, Pathway, ChatMessage, SavedSession } from './types';
 import { generateCareerAdvice } from './services/geminiService';
 import { saveSession } from './services/storage';
 import InputForm from './components/InputForm';
-import ResultView from './components/ResultView';
 import LoadingScreen from './components/LoadingScreen';
-import VoiceSession from './components/VoiceSession';
-import ChatSession from './components/ChatSession';
-import SimulationSession from './components/SimulationSession';
-import HistoryModal from './components/HistoryModal';
 import WelcomeScreen from './components/WelcomeScreen';
+import HistoryModal from './components/HistoryModal';
+
+// Lazy-loaded heavy components — only fetched when the user activates that mode
+const ResultView = lazy(() => import('./components/ResultView'));
+const VoiceSession = lazy(() => import('./components/VoiceSession'));
+const ChatSession = lazy(() => import('./components/ChatSession'));
+const SimulationSession = lazy(() => import('./components/SimulationSession'));
 
 const App: React.FC = () => {
   // Initialize in WELCOME state
@@ -250,7 +252,7 @@ const App: React.FC = () => {
         {appState === AppState.WELCOME ? (
             <WelcomeScreen onStart={() => setAppState(AppState.IDLE)} />
         ) : (
-            <>
+            <Suspense fallback={<LoadingScreen />}>
                 {mode === 'voice' && (
                 <VoiceSession 
                     onEndSession={() => switchMode('text')} 
@@ -326,7 +328,7 @@ const App: React.FC = () => {
                     )}
                 </>
                 )}
-            </>
+            </Suspense>
         )}
       </main>
 

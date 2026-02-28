@@ -1,24 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 
+const TIPS = [
+  "Checking what's actually hiring in Lagos right now...",
+  "Looking at what people with your background are doing...",
+  "Finding the path that fits your actual life, not a perfect one...",
+  "Reviewing what JAMB and WAEC results open up for you...",
+  "Checking scholarship windows that are still open...",
+  "Thinking through your family situation and what's realistic...",
+  "Almost ready — putting your two pathways together..."
+];
+
 const LoadingScreen: React.FC = () => {
   const [tip, setTip] = useState(0);
-  const tips = [
-    "Checking what's actually hiring in Lagos right now...",
-    "Looking at what people with your background are doing...",
-    "Finding the path that fits your actual life, not a perfect one...",
-    "Reviewing what JAMB and WAEC results open up for you...",
-    "Checking scholarship windows that are still open...",
-    "Thinking through your family situation and what's realistic...",
-    "Almost ready — putting your two pathways together..."
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setTip((prev) => (prev + 1) % tips.length);
+      setTip((prev) => (prev + 1) % TIPS.length);
     }, 3000);
     return () => clearInterval(interval);
-  }, [tips.length]);
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center py-20 animate-fadeIn">
@@ -29,7 +30,7 @@ const LoadingScreen: React.FC = () => {
       <h3 className="text-2xl font-black text-slate-900 mb-4">Thinking through your situation...</h3>
       <div className="h-8 overflow-hidden">
         <p className="text-emerald-800 font-medium text-center max-w-md animate-fadeSlideIn" key={tip}>
-          {tips[tip]}
+          {TIPS[tip]}
         </p>
       </div>
       
