@@ -88,7 +88,7 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
           onerror: async (err) => {
             console.error('Voice session error:', err);
             setStatus('error');
-            if (typeof window !== 'undefined' && window.aistudio?.openSelectKey) {
+            if (window.aistudio?.openSelectKey) {
                 await window.aistudio.openSelectKey();
             }
           }
@@ -184,30 +184,61 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] animate-fadeIn p-6">
-      <div className="relative mb-12">
+    <div className="flex flex-col items-center justify-center min-h-[70vh] animate-fadeIn p-6">
+      <div className="text-center mb-12">
+        <h2 className="text-2xl font-black text-slate-900 mb-2">
+          {status === 'connecting' ? 'Connecting you to your counselor...' : 
+           status === 'connected' ? 'Your counselor is listening. Talk freely.' : 
+           status === 'error' ? 'Call failed' : 'Disconnected'}
+        </h2>
+        <p className="text-slate-500 font-medium">
+          {status === 'connected' ? (isMuted ? "You're on mute" : "Warm, unhurried guidance") : "Please wait..."}
+        </p>
+      </div>
+
+      <div className="relative mb-16">
         <div 
-          className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-100 ease-out border-4 ${
-            status === 'connected' ? 'border-emerald-500/30' : 'border-slate-200'
+          className={`w-56 h-56 rounded-full flex items-center justify-center transition-all duration-100 ease-out border-8 ${
+            status === 'connected' ? 'border-emerald-900/10' : 'border-slate-100'
           }`}
           style={{
-            transform: `scale(${1 + (volume / 255) * 0.5})`,
-            boxShadow: `0 0 ${volume / 2}px rgba(16, 185, 129, 0.5)`
+            transform: `scale(${1 + (volume / 255) * 0.4})`,
+            boxShadow: status === 'connected' ? `0 0 ${volume / 1.5}px rgba(6, 78, 59, 0.2)` : 'none'
           }}
         >
-          <div className="bg-white p-6 rounded-full shadow-lg relative z-10">
-            {status === 'connecting' && <div className="animate-spin w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full" />}
-            {status === 'connected' && <Radio className="w-16 h-16 text-emerald-600 animate-pulse" />}
-            {status === 'error' && <PhoneOff className="w-16 h-16 text-red-500" />}
+          <div className="bg-white p-8 rounded-full shadow-2xl relative z-10 border border-emerald-50">
+            {status === 'connecting' && <div className="animate-spin w-16 h-16 border-4 border-emerald-900 border-t-transparent rounded-full" />}
+            {status === 'connected' && <Radio className="w-20 h-20 text-emerald-900 animate-pulse" />}
+            {status === 'error' && <PhoneOff className="w-20 h-20 text-red-500" />}
           </div>
         </div>
       </div>
-      <div className="flex flex-col items-center gap-6 mt-8">
-        <div className="flex items-center gap-6">
-            <button onClick={() => setIsMuted(!isMuted)} className="p-4 rounded-full bg-slate-100">{isMuted ? <MicOff /> : <Mic />}</button>
-            <button onClick={onEndSession} className="bg-red-500 text-white px-8 py-3 rounded-full font-semibold">End Call</button>
+
+      <div className="flex flex-col items-center gap-8 w-full max-w-sm">
+        <div className="flex items-center justify-center gap-8 w-full">
+            <button 
+              onClick={() => setIsMuted(!isMuted)} 
+              className={`p-6 rounded-full transition-all ${isMuted ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+            >
+              {isMuted ? <MicOff className="w-8 h-8" /> : <Mic className="w-8 h-8" />}
+            </button>
+            <button 
+              onClick={onEndSession} 
+              className="bg-red-600 text-white p-6 rounded-full shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all active:scale-95"
+            >
+              <PhoneOff className="w-8 h-8" />
+            </button>
         </div>
-        {status === 'connected' && <button onClick={onGenerateReport} className="bg-emerald-600 text-white px-6 py-2.5 rounded-full">Generate Written Plan</button>}
+        
+        {status === 'connected' && (
+          <button 
+            onClick={onGenerateReport} 
+            className="w-full bg-emerald-900 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-emerald-900/20 hover:bg-emerald-800 transition-all flex items-center justify-center gap-3"
+          >
+            <FileText className="w-6 h-6" />
+            <span>Turn this conversation into my roadmap</span>
+          </button>
+        )}
       </div>
     </div>
   );

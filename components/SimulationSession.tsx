@@ -74,22 +74,28 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
                  let toolResultText = "";
                  
                  try {
-                    if (call.name === 'generate_image' && call.args) {
-                        const prompt = call.args['prompt'] as string;
-                        const imageData = await generateSimulationImage(prompt);
-                        lastImageRef.current = imageData;
-                        
-                        setMessages(prev => prev.filter(m => m.id !== loadingId && m.id !== 'msg-thinking-' + Date.now()).concat({
-                            id: 'img-' + Date.now(),
-                            role: 'model',
-                            text: textContent ? "" : "You see the following scene:",
-                            image: imageData
-                        }));
-                        toolResultText = "Image generated successfully.";
+                    if (call.name === 'generate_image') {
+                        const prompt = (call.args as any)?.['prompt'] as string;
+                        if (!prompt) {
+                            toolResultText = "Error: Missing prompt.";
+                        } else {
+                            const imageData = await generateSimulationImage(prompt);
+                            lastImageRef.current = imageData;
+                            
+                            setMessages(prev => prev.filter(m => m.id !== loadingId && m.id !== 'msg-thinking-' + Date.now()).concat({
+                                id: 'img-' + Date.now(),
+                                role: 'model',
+                                text: textContent ? "" : "You see the following scene:",
+                                image: imageData
+                            }));
+                            toolResultText = "Image generated successfully.";
+                        }
                     } 
-                    else if (call.name === 'edit_image' && call.args) {
-                        const instruction = call.args['instruction'] as string;
-                        if (!lastImageRef.current) {
+                    else if (call.name === 'edit_image') {
+                        const instruction = (call.args as any)?.['instruction'] as string;
+                        if (!instruction) {
+                            toolResultText = "Error: Missing instruction.";
+                        } else if (!lastImageRef.current) {
                              toolResultText = "Error: No context image available.";
                         } else {
                              const imageData = await editSimulationImage(lastImageRef.current, instruction);
@@ -181,19 +187,29 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
 
   if (needsSetup) {
     return (
-        <div className="flex flex-col h-[600px] max-w-2xl mx-auto glass-card rounded-2xl shadow-xl overflow-hidden animate-fadeIn relative">
-             <button onClick={onExit} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10">
-                <XCircle className="w-8 h-8" />
+        <div className="flex flex-col h-[650px] max-w-2xl mx-auto glass-card rounded-[2.5rem] shadow-2xl overflow-hidden animate-fadeIn relative border-white/40">
+             <button onClick={onExit} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600 z-10 transition-colors">
+                <XCircle className="w-10 h-10" />
             </button>
-            <div className="flex flex-col items-center justify-center h-full text-center space-y-8 p-8 relative overflow-hidden">
-                <div className="relative z-10 bg-white p-5 rounded-full shadow-lg border border-indigo-100 mb-4">
-                    <Gamepad2 className="w-14 h-14 text-indigo-600" />
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-10 p-10 relative overflow-hidden">
+                <div className="relative z-10 bg-white p-6 rounded-full shadow-xl border border-indigo-50 mb-2">
+                    <Gamepad2 className="w-16 h-16 text-indigo-600" />
                 </div>
-                <h2 className="text-4xl font-bold text-slate-800">Career Simulator</h2>
-                <form onSubmit={handleSetupSubmit} className="w-full max-w-sm space-y-5 relative z-10">
-                    <input type="text" required value={setupData.name} onChange={(e) => setSetupData({...setupData, name: e.target.value})} className="w-full border rounded-xl p-3.5" placeholder="Name" />
-                    <input type="text" required value={setupData.role} onChange={(e) => setSetupData({...setupData, role: e.target.value})} className="w-full border rounded-xl p-3.5" placeholder="Job Title" />
-                    <button type="submit" className="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold">Launch Sim</button>
+                <div className="space-y-4 relative z-10">
+                  <h2 className="text-4xl font-black text-slate-900 tracking-tight">Before you commit to a path — <br/>live a day in it first.</h2>
+                  <p className="text-slate-500 text-lg max-w-md mx-auto leading-relaxed">Most people find out they hate a career after 3 years in it. You get to find out in 10 minutes.</p>
+                </div>
+                
+                <form onSubmit={handleSetupSubmit} className="w-full max-w-sm space-y-4 relative z-10">
+                    <div className="space-y-2 text-left">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">What should I call you?</label>
+                      <input type="text" required value={setupData.name} onChange={(e) => setSetupData({...setupData, name: e.target.value})} className="w-full border-2 border-slate-100 rounded-2xl p-4 focus:border-indigo-500 outline-none transition-all font-medium" placeholder="Your name..." />
+                    </div>
+                    <div className="space-y-2 text-left">
+                      <label className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-1">Which role do you want to try?</label>
+                      <input type="text" required value={setupData.role} onChange={(e) => setSetupData({...setupData, role: e.target.value})} className="w-full border-2 border-slate-100 rounded-2xl p-4 focus:border-indigo-500 outline-none transition-all font-medium" placeholder="e.g. Software Engineer, Nurse, Architect..." />
+                    </div>
+                    <button type="submit" className="w-full bg-indigo-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl shadow-indigo-500/20 hover:bg-indigo-700 transition-all transform hover:-translate-y-1 active:scale-95">Step into this life</button>
                 </form>
             </div>
         </div>

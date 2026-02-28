@@ -2,8 +2,8 @@
 declare global {
   interface Window {
     aistudio?: {
-      openSelectKey?(): Promise<void>;
-      hasSelectedApiKey?(): Promise<boolean>;
+      hasSelectedApiKey: () => Promise<boolean>;
+      openSelectKey: () => Promise<void>;
     };
   }
 }

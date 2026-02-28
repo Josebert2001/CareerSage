@@ -11,7 +11,7 @@ const cleanJson = (text: string): string => {
 const handleApiError = async (error: any) => {
   const msg = error?.message || "";
   if (msg.includes("Requested entity was not found") || msg.includes("403") || msg.includes("permission")) {
-    if (typeof window !== 'undefined' && window.aistudio?.openSelectKey) {
+    if (window.aistudio?.openSelectKey) {
       await window.aistudio.openSelectKey();
     }
   }

@@ -170,33 +170,18 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
   const [activeTab, setActiveTab] = useState<'practical' | 'growth'>('practical');
   const [feedbackState, setFeedbackState] = useState<'none' | 'helpful' | 'not-helpful'>('none');
 
-  const renderBubble = (text: React.ReactNode, delay: number = 0) => (
-    <Reveal delay={delay}>
-        <div className="flex w-full mb-6 justify-start">
-            <div className="flex max-w-[90%] gap-3 flex-row">
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0 mt-1 shadow-md shadow-emerald-500/20 text-white">
-                    <Sparkles className="w-5 h-5" />
-                </div>
-                <div className="p-5 glass-card text-slate-700 rounded-2xl rounded-tl-none text-base leading-relaxed">
-                    {text}
-                </div>
-            </div>
-        </div>
-    </Reveal>
-  );
-
   const renderPathway = (pathway: Pathway, type: 'practical' | 'growth') => (
     <div className="animate-fadeIn space-y-6">
       {/* Header Section */}
-      <div className={`p-8 rounded-3xl ${type === 'practical' ? 'bg-gradient-to-br from-blue-50 to-white border border-blue-100' : 'bg-gradient-to-br from-purple-50 to-white border border-purple-100'} shadow-lg shadow-slate-200/50`}>
+      <div className={`p-8 rounded-3xl ${type === 'practical' ? 'bg-gradient-to-br from-emerald-50 to-white border border-emerald-100' : 'bg-gradient-to-br from-orange-50 to-white border border-orange-100'} shadow-lg shadow-slate-200/50`}>
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${type === 'practical' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>
-                {type === 'practical' ? 'Option A: Practical' : 'Option B: Growth'}
+              <span className={`text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${type === 'practical' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
+                {type === 'practical' ? 'Option A: Right Now' : 'Option B: The 5-Year Vision'}
               </span>
             </div>
-            <h3 className={`text-3xl md:text-4xl font-bold ${type === 'practical' ? 'text-blue-900' : 'text-purple-900'} tracking-tight`}>
+            <h3 className={`text-3xl md:text-4xl font-black ${type === 'practical' ? 'text-emerald-900' : 'text-orange-900'} tracking-tight`}>
               {pathway.title}
             </h3>
           </div>
@@ -205,15 +190,15 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
           <div className="flex gap-2 flex-wrap md:flex-nowrap">
             <button 
                 onClick={() => onSimulate(pathway)}
-                className="flex items-center gap-2 bg-white text-slate-800 px-5 py-2.5 rounded-xl font-bold shadow-sm border border-slate-200 hover:shadow-lg hover:border-emerald-300 hover:text-emerald-700 transition-all group"
+                className="flex items-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-bold shadow-sm border border-slate-200 hover:shadow-xl hover:border-emerald-300 hover:text-emerald-900 transition-all group active:scale-95"
             >
-                <Gamepad2 className="w-5 h-5 text-emerald-500 group-hover:scale-110 transition-transform" />
-                <span>Simulate</span>
+                <Gamepad2 className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                <span>Step into this life</span>
             </button>
           </div>
         </div>
 
-        <p className="text-slate-700 text-lg leading-relaxed mb-8 bg-white/50 p-5 rounded-2xl backdrop-blur-sm border border-white/60">
+        <p className="text-slate-700 text-lg leading-relaxed mb-8 bg-white/60 p-6 rounded-2xl backdrop-blur-sm border border-white/80">
           {pathway.fitReason}
         </p>
 
@@ -243,8 +228,11 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
         )}
       </div>
 
-      <div className="glass-card p-6 rounded-2xl border-l-4 border-l-emerald-500">
-        <h4 className="flex items-center gap-2 font-bold text-emerald-900 text-lg mb-5"><CheckCircle className="w-6 h-6 text-emerald-600" />Start This Week</h4>
+      <div className="glass-card p-8 rounded-3xl border-l-4 border-l-emerald-600">
+        <h4 className="flex flex-col gap-1 mb-6">
+          <span className="text-emerald-900 text-2xl font-black">You don't need to figure everything out today. Start here.</span>
+          <span className="text-slate-500 text-sm font-medium">Small steps to take this week</span>
+        </h4>
         <ul className="space-y-1">
           {safeArray(pathway.actionSteps).map((step, i) => (
              <ActionStepCheckbox key={i} step={step} id={`step-${type}-${i}-${pathway.title.substring(0,5)}`} />
@@ -271,35 +259,50 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
   );
 
   return (
-    <div className="w-full max-w-5xl mx-auto pb-24 pt-4">
-      {/* 1. Profile Summary - Delayed */}
-      {renderBubble(
-        <>
-            <p className="font-bold mb-2 text-emerald-800 text-lg">Analysis Complete</p>
-            <p className="text-slate-600">{data.studentProfile.summary}</p>
-        </>, 
-        0
-      )}
-
-      <Reveal delay={1500}>
-         <div className="glass-card rounded-2xl p-6 mb-8 border-l-4 border-l-emerald-400 text-slate-600 text-base italic leading-relaxed mx-4 md:mx-0 shadow-lg shadow-emerald-500/5">
-            "{data.reflection}"
+    <div className="w-full max-w-5xl mx-auto pb-24 pt-8 px-4 md:px-0">
+      
+      {/* 1. Reflection Card - Lead with this */}
+      <Reveal delay={0}>
+         <div className="mb-12 relative">
+            <div className="absolute -top-4 -left-4 w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center shadow-sm z-10">
+              <Sparkles className="w-6 h-6 text-emerald-600" />
+            </div>
+            <div className="bg-[#fffef0] p-8 md:p-12 rounded-sm shadow-xl border border-emerald-100/50 relative transform -rotate-1 hover:rotate-0 transition-transform duration-500">
+              <h4 className="text-emerald-900/40 font-bold uppercase tracking-widest text-sm mb-6">Here's what I heard:</h4>
+              <p className="text-2xl md:text-3xl text-emerald-950 font-medium leading-relaxed italic" style={{fontFamily: 'Georgia, serif'}}>
+                {data.reflection}
+              </p>
+              <div className="mt-8 pt-8 border-t border-emerald-900/10 flex justify-end">
+                <span className="text-emerald-900/30 font-bold italic">— CareerSage</span>
+              </div>
+            </div>
          </div>
       </Reveal>
 
       {/* 2. Intro to Pathways */}
-      {renderBubble("Based on what you told me, I have TWO pathways for you. Let's look at what you can do right now versus your long-term dream.", 3000)}
+      <Reveal delay={1500}>
+        <div className="mb-12 text-center max-w-2xl mx-auto">
+          <h2 className="text-3xl font-black text-slate-900 mb-4">I have two pathways for you.</h2>
+          <p className="text-slate-600 text-lg">One is about stability right now, the other is about where we can take this in the long run.</p>
+        </div>
+      </Reveal>
 
       {/* 3. The Pathways UI */}
-      <Reveal delay={4500}>
+      <Reveal delay={2500}>
         <div className="mb-12">
-            <div className="flex justify-center p-1.5 bg-slate-200/50 backdrop-blur-md rounded-2xl mb-8 max-w-md mx-auto border border-white/50 shadow-inner">
-            <button onClick={() => setActiveTab('practical')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'practical' ? 'bg-white text-slate-900 shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'}`}>
-                <Briefcase className="w-4 h-4" /> Practical
-            </button>
-            <button onClick={() => setActiveTab('growth')} className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold transition-all ${activeTab === 'growth' ? 'bg-white text-purple-900 shadow-md' : 'text-slate-500 hover:text-purple-900 hover:bg-white/50'}`}>
-                <TrendingUp className="w-4 h-4" /> Growth
-            </button>
+            <div className="flex justify-center p-2 bg-emerald-900/5 backdrop-blur-md rounded-full mb-10 max-w-xl mx-auto border border-emerald-900/10 shadow-inner">
+              <button 
+                onClick={() => setActiveTab('practical')} 
+                className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-full text-sm font-black transition-all ${activeTab === 'practical' ? 'bg-emerald-900 text-white shadow-lg' : 'text-emerald-900/60 hover:text-emerald-900 hover:bg-white/50'}`}
+              >
+                  <Briefcase className="w-4 h-4" /> What you can do right now
+              </button>
+              <button 
+                onClick={() => setActiveTab('growth')} 
+                className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-full text-sm font-black transition-all ${activeTab === 'growth' ? 'bg-orange-600 text-white shadow-lg' : 'text-orange-900/60 hover:text-orange-900 hover:bg-white/50'}`}
+              >
+                  <TrendingUp className="w-4 h-4" /> Where you can actually be in 5 years
+              </button>
             </div>
 
             {activeTab === 'practical' ? renderPathway(data.practicalPathway, 'practical') : renderPathway(data.growthPathway, 'growth')}
@@ -308,9 +311,9 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
 
       {/* 4. Sources */}
       {data.sources && data.sources.length > 0 && (
-        <Reveal delay={5000}>
-            <div className="max-w-4xl mx-auto mb-10">
-            <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4 pl-1">Sources & References</h4>
+        <Reveal delay={3500}>
+            <div className="max-w-4xl mx-auto mb-16">
+            <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4 pl-1">Checked these sources for you:</h4>
             <div className="flex flex-wrap gap-3">
                 {data.sources.map((source, i) => (
                 <a key={i} href={source.uri} target="_blank" rel="noreferrer" className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs text-blue-600 font-medium hover:text-blue-800 hover:bg-blue-50 transition-all hover:-translate-y-0.5 shadow-sm">
@@ -323,20 +326,29 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
       )}
 
       {/* 5. Closing */}
-      <Reveal delay={6000}>
-        <div className="bg-gradient-to-br from-emerald-900 to-teal-900 text-white rounded-3xl p-10 text-center relative overflow-hidden space-y-8 shadow-2xl shadow-emerald-900/40">
-            <div className="absolute top-0 left-0 w-full h-full opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent"></div>
-            <div className="relative z-10 border-b border-emerald-800 pb-8">
-                <h4 className="text-xs font-bold text-emerald-300 mb-4 uppercase tracking-widest">Was this helpful?</h4>
-                <div className="flex justify-center gap-4">
-                    <button onClick={() => setFeedbackState('helpful')} className={`flex items-center gap-2 px-6 py-2.5 rounded-full border-2 transition-all font-semibold ${feedbackState === 'helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-700 text-emerald-100 hover:bg-emerald-800'}`}><ThumbsUp className="w-4 h-4" /> Yes</button>
-                    <button onClick={() => setFeedbackState('not-helpful')} className={`flex items-center gap-2 px-6 py-2.5 rounded-full border-2 transition-all font-semibold ${feedbackState === 'not-helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-700 text-emerald-100 hover:bg-emerald-800'}`}><ThumbsDown className="w-4 h-4" /> No</button>
-                </div>
-            </div>
+      <Reveal delay={4500}>
+        <div className="bg-emerald-950 text-white rounded-[2rem] p-10 md:p-16 text-center relative overflow-hidden space-y-8 shadow-2xl shadow-emerald-900/40">
+            <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent"></div>
+            
             <div className="relative z-10">
-            <h3 className="text-2xl font-bold mb-4 tracking-tight">Keep Exploring</h3>
-            <p className="text-emerald-100 mb-8 max-w-2xl mx-auto text-lg leading-relaxed opacity-90">{data.closingMessage}</p>
-            <button onClick={onReset} className="inline-flex items-center gap-2 px-8 py-3 bg-white text-emerald-900 rounded-full font-bold hover:bg-emerald-50 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5">Start New Session <ArrowRight className="w-5 h-5" /></button>
+              <h4 className="text-xs font-bold text-emerald-400 mb-6 uppercase tracking-[0.3em]">This is your starting point, not your ceiling.</h4>
+              <p className="text-emerald-100 mb-12 max-w-2xl mx-auto text-xl md:text-2xl leading-relaxed opacity-90 font-medium italic">"{data.closingMessage}"</p>
+              
+              <div className="flex flex-col md:flex-row justify-center items-center gap-6 pt-8 border-t border-white/10">
+                <div className="flex flex-col items-center gap-4">
+                  <p className="text-sm font-bold text-emerald-400/60 uppercase tracking-widest">Did this feel true to your situation?</p>
+                  <div className="flex gap-4">
+                      <button onClick={() => setFeedbackState('helpful')} className={`flex items-center gap-2 px-8 py-3 rounded-full border-2 transition-all font-bold ${feedbackState === 'helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900'}`}><ThumbsUp className="w-4 h-4" /> Yes, this is me</button>
+                      <button onClick={() => setFeedbackState('not-helpful')} className={`flex items-center gap-2 px-8 py-3 rounded-full border-2 transition-all font-bold ${feedbackState === 'not-helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900'}`}><ThumbsDown className="w-4 h-4" /> Not quite</button>
+                  </div>
+                </div>
+                
+                <div className="h-px w-full md:w-px md:h-20 bg-white/10 mx-4"></div>
+
+                <button onClick={onReset} className="inline-flex items-center gap-3 px-10 py-4 bg-white text-emerald-950 rounded-full font-black text-lg hover:bg-emerald-50 transition-all shadow-xl hover:-translate-y-1 active:scale-95">
+                  Start a new session <ArrowRight className="w-5 h-5" />
+                </button>
+              </div>
             </div>
         </div>
       </Reveal>

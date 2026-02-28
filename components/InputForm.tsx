@@ -25,26 +25,27 @@ const STEPS = [
 ];
 
 const SITUATION_OPTIONS = [
-  "Secondary School (SS1-SS3)",
-  "Preparing for JAMB/WAEC",
-  "University Undergraduate",
-  "Fresh Graduate / NYSC",
-  "Working / Career Switcher"
+  "Still in secondary school (SS1-SS3)",
+  "Preparing for JAMB or WAEC",
+  "In university right now",
+  "In a polytechnic or college of education",
+  "Just finished NYSC",
+  "Working but want to switch careers"
 ];
 
 const INTEREST_OPTIONS = [
   "Mathematics", "Coding/Tech", "Creative Arts", "Business/Sales", 
   "Sports", "Writing", "Science/Biology", "Public Speaking", 
-  "Helping People", "Fixing Things"
+  "Helping People", "Fixing Things", "Agriculture", "Entertainment"
 ];
 
 const CONSTRAINT_OPTIONS = [
-  "Need to earn money ASAP",
-  "Limited financial support",
-  "Family pressure on choice",
-  "Looking for scholarships",
-  "Willing to relocate",
-  "Flexible situation"
+  "Money is tight right now",
+  "Family pressure on my choice",
+  "Need to start earning ASAP",
+  "Looking for scholarships only",
+  "Willing to relocate for work",
+  "My parents have a specific plan for me"
 ];
 
 const InputForm: React.FC<InputFormProps> = ({ 
@@ -90,67 +91,28 @@ const InputForm: React.FC<InputFormProps> = ({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      // Security: Validate file uploads
-      const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-      const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'application/pdf', 'text/plain'];
-      const MAX_FILES = 5;
-
+      const newFiles: FileData[] = [];
       const fileList = Array.from(e.target.files) as File[];
 
-      // Check total number of files
-      if (files.length + fileList.length > MAX_FILES) {
-        console.error(`Maximum ${MAX_FILES} files allowed`);
-        alert(`You can upload a maximum of ${MAX_FILES} files`);
-        return;
-      }
-
-      let hasError = false;
-      const newFiles: FileData[] = [];
       let processedCount = 0;
-
       fileList.forEach(file => {
-        // Validate file size
-        if (file.size > MAX_FILE_SIZE) {
-          console.error(`File too large: ${file.name} (${file.size} bytes)`);
-          alert(`File "${file.name}" is too large. Maximum size is 5MB.`);
-          hasError = true;
-          return;
-        }
-
-        // Validate file type
-        if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-          console.error(`File type not allowed: ${file.type} for ${file.name}`);
-          alert(`File type not allowed for "${file.name}". Allowed: images, PDF, plain text.`);
-          hasError = true;
-          return;
-        }
-
         const reader = new FileReader();
-        reader.onerror = () => {
-          console.error(`Failed to read file: ${file.name}`);
-          hasError = true;
-        };
         reader.onload = (event) => {
-          if (event.target?.result && !hasError) {
+          if (event.target?.result) {
             const base64String = (event.target.result as string).split(',')[1];
-            if (base64String) {
-              newFiles.push({
-                name: file.name,
-                mimeType: file.type,
-                data: base64String
-              });
-            }
+            newFiles.push({
+              name: file.name,
+              mimeType: file.type,
+              data: base64String
+            });
           }
           processedCount++;
           if (processedCount === fileList.length) {
-            if (!hasError && newFiles.length > 0) {
-              setFiles(prev => [...prev, ...newFiles]);
-            }
+            setFiles(prev => [...prev, ...newFiles]);
           }
         };
         reader.readAsDataURL(file);
       });
-
       if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
@@ -210,13 +172,13 @@ const InputForm: React.FC<InputFormProps> = ({
       case 0: // Name
         return (
           <div className="space-y-6">
-            {renderBubble("Hi! I'm CareerSage 👋 I'm here to help you navigate your future with advanced AI reasoning. First things first, what should I call you?")}
+            {renderBubble("Hey. Before anything else — what do I call you?")}
             <div className="pl-12">
               <ConversationalInput 
                 value={profile.name}
                 onChange={(val) => setProfile({ ...profile, name: val })}
                 onSubmit={handleNext}
-                placeholder="My name is..."
+                placeholder="Just my first name is fine..."
                 autoFocus
               />
             </div>
@@ -226,7 +188,7 @@ const InputForm: React.FC<InputFormProps> = ({
       case 1: // Situation
         return (
           <div className="space-y-6">
-             {renderBubble(<>Nice to meet you, <strong>{profile.name}</strong>! What describes your current situation best?</>, true)}
+             {renderBubble(<>Okay {profile.name}. Where are you right now? Not where you want to be — just where you are today.</>, true)}
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-12">
                {SITUATION_OPTIONS.map((opt) => (
                  <button
@@ -254,7 +216,7 @@ const InputForm: React.FC<InputFormProps> = ({
       case 2: // Interests
         return (
           <div className="space-y-6">
-            {renderBubble("Got it. Now, which subjects or activities do you naturally gravitate towards?", true)}
+            {renderBubble("What do you actually enjoy? Not what looks good on paper — what makes time disappear?", true)}
             <div className="pl-12">
                 <div className="flex flex-wrap gap-2 mb-4">
                 {INTEREST_OPTIONS.map((interest) => {
@@ -298,7 +260,7 @@ const InputForm: React.FC<InputFormProps> = ({
       case 3: // Constraints
         return (
           <div className="space-y-6">
-             {renderBubble("Life is complex. Is there anything specific about your family situation or finances I should keep in mind?", true)}
+             {renderBubble("Real talk — what's the situation at home? Money? Family pressure? I need to know so I don't give you advice that ignores your reality.", true)}
              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-12">
                {CONSTRAINT_OPTIONS.map((opt) => {
                  const isSelected = profile.constraints.includes(opt);
@@ -324,7 +286,7 @@ const InputForm: React.FC<InputFormProps> = ({
                             <span className="font-medium">{opt}</span>
                         </div>
                     </button>
-                 );
+                  );
                })}
              </div>
              <div className="pl-12 flex justify-end">
@@ -346,34 +308,34 @@ const InputForm: React.FC<InputFormProps> = ({
       case 4: // Dreams
         return (
           <div className="space-y-6">
-            {renderBubble(<>This is the most important part. <strong>What are your career dreams?</strong> Even if they seem impossible right now.</>, true)}
+            {renderBubble("Now dream a little. If money and family weren't a problem — what would you be doing in 5 years?", true)}
             <div className="pl-12">
                 <ConversationalInput 
                     value={profile.dreams}
                     onChange={(val) => setProfile({ ...profile, dreams: val })}
                     onSubmit={handleNext}
-                    placeholder="I want to be a software engineer, or maybe start my own business..."
+                    placeholder="Even if it sounds impossible, say it..."
                     autoFocus
                 />
             </div>
           </div>
         );
 
-      case 5: // Concerns (New Step)
+      case 5: // Concerns
         return (
           <div className="space-y-6">
-             {renderBubble("Is there anything worrying you? Any specific questions or fears?", true)}
+             {renderBubble("Last thing. What's the fear? The thing that keeps you up at night about all of this.", true)}
              <div className="pl-12">
                 <ConversationalInput 
                     value={profile.concerns}
                     onChange={(val) => setProfile({ ...profile, concerns: val })}
                     onSubmit={handleNext}
-                    placeholder="I'm worried about tuition fees, or if I'm smart enough..."
+                    placeholder="I'm worried that..."
                     autoFocus
                 />
                 <div className="mt-2 text-right">
                     <button onClick={handleNext} className="text-xs font-semibold text-slate-400 hover:text-emerald-600">
-                        No concerns? Press enter or click here to skip.
+                        I don't have a specific fear right now
                     </button>
                 </div>
              </div>
@@ -383,7 +345,7 @@ const InputForm: React.FC<InputFormProps> = ({
       case 6: // Documents
         return (
           <div className="space-y-6">
-            {renderBubble("Almost there! Do you have any exam results (WAEC/JAMB), a CV, or notes you want me to look at?", true)}
+            {renderBubble("Almost done. Do you have WAEC results, a JAMB score, or a CV? Drop them here and I'll factor them in.", true)}
             
             <div className="pl-12">
                <div 
@@ -402,7 +364,7 @@ const InputForm: React.FC<InputFormProps> = ({
                         <div className="bg-white p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
                              <Paperclip className="w-6 h-6 text-emerald-500" />
                         </div>
-                        <span className="text-sm font-semibold">Tap to upload files (Optional)</span>
+                        <span className="text-sm font-semibold">Add your documents (optional)</span>
                     </div>
                </div>
 
@@ -419,13 +381,16 @@ const InputForm: React.FC<InputFormProps> = ({
                 </div>
                 )}
                 
-                <div className="mt-8 flex justify-end">
+                <div className="mt-8 flex justify-end gap-4 items-center">
+                    <button onClick={submitForm} className="text-sm font-semibold text-slate-400 hover:text-emerald-600">
+                        Skip — I don't have any right now
+                    </button>
                     <button
                         onClick={submitForm}
                         disabled={isLoading}
                         className={`
                             flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-white shadow-xl transition-all transform hover:scale-105 active:scale-95 text-lg
-                            ${isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-emerald-600 to-teal-500 hover:shadow-emerald-500/30'}
+                            ${isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-900 hover:bg-emerald-800'}
                         `}
                     >
                         {isLoading ? "Analyzing..." : "Generate My Plan ✨"}

@@ -10,12 +10,12 @@
     <style>
       body {
         font-family: 'Inter', sans-serif;
-        background-color: #f8fafc;
+        background-color: #fdfcf8; /* Soft cream background */
         margin: 0;
         overflow-x: hidden;
       }
       
-      /* Modern Animated Background */
+      /* Modern Animated Background - Warm Earthy Tones */
       .mesh-bg {
         position: fixed;
         top: 0;
@@ -24,9 +24,9 @@
         height: 100vh;
         z-index: -1;
         background: 
-          radial-gradient(at 0% 0%, hsla(156, 75%, 92%, 1) 0, transparent 50%), 
-          radial-gradient(at 50% 0%, hsla(180, 70%, 93%, 1) 0, transparent 50%), 
-          radial-gradient(at 100% 0%, hsla(210, 75%, 92%, 1) 0, transparent 50%);
+          radial-gradient(at 0% 0%, hsla(140, 30%, 94%, 1) 0, transparent 50%), 
+          radial-gradient(at 50% 0%, hsla(20, 40%, 95%, 1) 0, transparent 50%), 
+          radial-gradient(at 100% 0%, hsla(160, 25%, 93%, 1) 0, transparent 50%);
         background-size: 200% 200%;
         animation: gradient-move 15s ease infinite;
       }
@@ -35,12 +35,12 @@
         position: fixed;
         filter: blur(80px);
         z-index: -1;
-        opacity: 0.6;
+        opacity: 0.5;
         animation: blob-bounce 10s infinite ease-in-out;
       }
-      .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #d1fae5; animation-delay: 0s; }
-      .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #e0f2fe; animation-delay: 2s; }
-      .blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: #f0f9ff; animation-delay: 4s; }
+      .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ecfdf5; animation-delay: 0s; } /* Soft Green */
+      .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #fff7ed; animation-delay: 2s; } /* Soft Terracotta/Orange */
+      .blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: #fefce8; animation-delay: 4s; } /* Soft Yellow */
 
       @keyframes gradient-move {
         0% { background-position: 0% 50%; }

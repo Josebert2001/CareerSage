@@ -1,6 +1,6 @@
 {
-  "name": "Copy of CareerSage",
-  "description": "An AI-powered career counselor for students, providing personalized, realistic, and culturally aware career guidance.",
+  "name": "CareerSage",
+  "description": "The career counselor most Nigerian students never had access to. Built for those navigating JAMB, WAEC, NYSC, and the real job market.",
   "requestFramePermissions": [
     "microphone"
   ]
