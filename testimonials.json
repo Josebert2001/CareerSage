@@ -1,0 +1,32 @@
+[
+  {
+    "name": "Sarah Chen",
+    "role": "Computer Science Student",
+    "testimonial": "CareerSage helped me discover career paths I never considered. The AI analysis of my skills and interests was incredibly accurate and gave me a clear direction for my future.",
+    "date": "2025-01-15"
+  },
+  {
+    "name": "Marcus Williams",
+    "role": "Career Changer",
+    "testimonial": "After 5 years in retail, I wanted to switch careers but felt lost. CareerSage provided a detailed roadmap that made the transition feel achievable. Now I'm studying data science!",
+    "date": "2025-01-22"
+  },
+  {
+    "name": "Priya Patel",
+    "role": "Recent Graduate",
+    "testimonial": "The simulation feature blew my mind! Being able to visualize myself in different career scenarios made my decision so much clearer. Highly recommend!",
+    "date": "2025-02-01"
+  },
+  {
+    "name": "James O'Brien",
+    "role": "High School Senior",
+    "testimonial": "I was overwhelmed choosing a college major. CareerSage broke down each path with real salary data and growth projections. It made the decision feel less scary.",
+    "date": "2025-02-10"
+  },
+  {
+    "name": "Aisha Mohammed",
+    "role": "MBA Student",
+    "testimonial": "The voice chat felt like talking to a real career counselor. It asked thoughtful follow-up questions and really understood my unique situation as an international student.",
+    "date": "2025-02-18"
+  }
+]

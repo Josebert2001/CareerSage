@@ -8,6 +8,8 @@ import InputForm from './components/InputForm';
 import LoadingScreen from './components/LoadingScreen';
 import WelcomeScreen from './components/WelcomeScreen';
 import HistoryModal from './components/HistoryModal';
+import TestimonialsDisplay from './components/TestimonialsDisplay';
+import TestimonialSubmission from './components/TestimonialSubmission';
 
 // Lazy-loaded heavy components — only fetched when the user activates that mode
 const ResultView = lazy(() => import('./components/ResultView'));
@@ -337,6 +339,14 @@ const App: React.FC = () => {
         onClose={() => setShowHistory(false)} 
         onSelectSession={handleRestoreSession} 
       />
+
+      {/* Testimonials Section — visible on Welcome and Idle screens */}
+      {(appState === AppState.WELCOME || (appState === AppState.IDLE && mode === 'text')) && (
+        <section className="w-full max-w-5xl mx-auto px-4 md:px-6">
+          <TestimonialsDisplay />
+          <TestimonialSubmission />
+        </section>
+      )}
 
       {/* Footer */}
       <footer className="py-6 mt-auto">
