@@ -174,15 +174,13 @@ const InputForm: React.FC<InputFormProps> = ({
           <div className="space-y-6" role="region" aria-label="Name input step">
             {renderBubble("Hey. Before anything else — what do I call you?")}
             <div className="pl-12">
-              <label htmlFor="name-input" className="sr-only">Enter your first name</label>
+              <label className="sr-only">Enter your first name</label>
               <ConversationalInput 
-                id="name-input"
                 value={profile.name}
                 onChange={(val) => setProfile({ ...profile, name: val })}
                 onSubmit={handleNext}
                 placeholder="Just my first name is fine..."
                 autoFocus
-                aria-label="Your first name"
               />
             </div>
           </div>
@@ -331,15 +329,13 @@ const InputForm: React.FC<InputFormProps> = ({
           <div className="space-y-6" role="region" aria-label="Dreams and goals input">
             {renderBubble("Now dream a little. If money and family weren't a problem — what would you be doing in 5 years?", true)}
             <div className="pl-12">
-                <label htmlFor="dreams-input" className="sr-only">Describe your dreams and goals</label>
+                <label className="sr-only">Describe your dreams and goals</label>
                 <ConversationalInput 
-                    id="dreams-input"
                     value={profile.dreams}
                     onChange={(val) => setProfile({ ...profile, dreams: val })}
                     onSubmit={handleNext}
                     placeholder="Even if it sounds impossible, say it..."
                     autoFocus
-                    aria-label="Your dreams for the next 5 years"
                 />
             </div>
           </div>
@@ -350,15 +346,13 @@ const InputForm: React.FC<InputFormProps> = ({
           <div className="space-y-6" role="region" aria-label="Concerns and fears input">
              {renderBubble("Last thing. What's the fear? The thing that keeps you up at night about all of this.", true)}
              <div className="pl-12">
-                <label htmlFor="concerns-input" className="sr-only">Describe your concerns and fears</label>
+                <label className="sr-only">Describe your concerns and fears</label>
                 <ConversationalInput 
-                    id="concerns-input"
                     value={profile.concerns}
                     onChange={(val) => setProfile({ ...profile, concerns: val })}
                     onSubmit={handleNext}
                     placeholder="I'm worried that..."
                     autoFocus
-                    aria-label="Your concerns or fears about your career"
                 />
                 <div className="mt-4 text-center">
                     <button 
