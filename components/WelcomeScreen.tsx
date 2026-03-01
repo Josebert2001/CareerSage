@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Compass } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -36,59 +36,62 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 animate-fadeIn relative pt-8 md:pt-16">
-      <div className="text-center max-w-4xl mx-auto mb-12 md:mb-16">
-        {/* Dynamic Hook with better animation */}
-        <div className="h-8 md:h-10 mb-8 md:mb-12 overflow-hidden">
-          <p className="text-emerald-700 font-semibold text-base md:text-lg transition-all duration-500 transform translate-y-0 line-clamp-1">
+    <div className="flex flex-col items-center justify-center min-h-screen px-4 md:px-6 animate-fadeIn relative py-16 md:py-20">
+      {/* Main Content */}
+      <div className="w-full max-w-3xl mx-auto">
+        {/* Dynamic Context Tag */}
+        <div className="mb-12 md:mb-16 h-7 md:h-8 overflow-hidden">
+          <p className="text-slate-500 font-normal text-base md:text-lg transition-all duration-500 transform translate-y-0">
             {HOOKS[hookIndex]}
           </p>
         </div>
         
-        {/* Enhanced Main Heading */}
-        <h1 className="text-4xl md:text-7xl font-black text-slate-900 mb-6 md:mb-8 tracking-tight leading-snug" role="heading" aria-level={1}>
-          Someone should have told you <br className="hidden md:block"/>
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-600">this years ago.</span>
+        {/* Main Headline - Minimal and Elegant */}
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-light text-slate-900 mb-8 md:mb-10 leading-tight tracking-tight" role="heading" aria-level={1}>
+          Your career path, <span className="font-normal">clarified</span>
         </h1>
         
-        {/* Subheading with improved contrast */}
-        <p className="text-lg md:text-xl text-slate-700 leading-relaxed max-w-2xl mx-auto mb-10 md:mb-14 font-medium">
-          CareerSage is the career counselor most Nigerian students never had access to.
+        {/* Subheading - Concise Value Prop */}
+        <p className="text-lg md:text-xl text-slate-600 leading-relaxed max-w-2xl mb-12 md:mb-16 font-light">
+          CareerSage helps Nigerian students navigate JAMB, NYSC, and beyond with personalized guidance tailored to your unique situation.
         </p>
 
-        {/* CTA Section */}
-        <div className="flex flex-col items-center gap-6 md:gap-8">
-            <button 
-                onClick={handleStart}
-                className="group relative inline-flex items-center gap-3 px-8 md:px-10 py-4 md:py-5 bg-emerald-900 hover:bg-emerald-800 text-white rounded-full font-bold text-base md:text-lg shadow-lg shadow-emerald-900/20 hover:shadow-xl hover:shadow-emerald-900/30 transition-all transform hover:-translate-y-1 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
-                aria-label="Start career guidance by telling your situation"
-            >
-                <span>Tell me your situation</span>
-                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 group-hover:translate-x-1 transition-transform" />
-            </button>
-            
-            {/* Supporting text */}
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-xs md:text-sm font-semibold text-emerald-900/70 uppercase tracking-widest">
-                Built by someone who grew up in this system
-              </p>
-            </div>
+        {/* CTA Section - Subtle but Clear */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8">
+          <button 
+            onClick={handleStart}
+            className="inline-flex items-center gap-2 px-7 md:px-8 py-3.5 md:py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-base md:text-lg transition-all transform hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+            aria-label="Start career guidance by telling your situation"
+          >
+            <span>Get Started</span>
+            <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-0.5" />
+          </button>
+          
+          {/* Trust indicator */}
+          <p className="text-sm text-slate-500 font-light">
+            Takes 5 minutes. No signup required.
+          </p>
         </div>
       </div>
 
-      {/* Feature pills section */}
-      <div className="flex flex-wrap justify-center gap-3 md:gap-4 w-full max-w-5xl">
-        <div className="px-4 md:px-6 py-2.5 md:py-3 rounded-full bg-white/70 backdrop-blur-sm border border-emerald-100 text-emerald-800 text-xs md:text-sm font-semibold flex items-center gap-2 transition-all hover:bg-white hover:shadow-md">
-          <Compass className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-          JAMB & WAEC Guidance
-        </div>
-        <div className="px-4 md:px-6 py-2.5 md:py-3 rounded-full bg-white/70 backdrop-blur-sm border border-emerald-100 text-emerald-800 text-xs md:text-sm font-semibold flex items-center gap-2 transition-all hover:bg-white hover:shadow-md">
-          <Compass className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-          NYSC & Job Market
-        </div>
-        <div className="px-4 md:px-6 py-2.5 md:py-3 rounded-full bg-white/70 backdrop-blur-sm border border-emerald-100 text-emerald-800 text-xs md:text-sm font-semibold flex items-center gap-2 transition-all hover:bg-white hover:shadow-md">
-          <Compass className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-          Poly vs Uni Reality
+      {/* Spacer */}
+      <div className="flex-1 min-h-12"></div>
+
+      {/* Feature Highlights - Clean and Minimal */}
+      <div className="w-full max-w-3xl mx-auto pt-8 md:pt-12 border-t border-slate-200">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+          <div className="text-center md:text-left">
+            <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-2">Educational Paths</p>
+            <p className="text-slate-700 text-sm">JAMB, WAEC, NYSC guidance</p>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-2">Career Planning</p>
+            <p className="text-slate-700 text-sm">Personalized roadmap for your goals</p>
+          </div>
+          <div className="text-center md:text-left">
+            <p className="text-slate-500 text-sm font-semibold uppercase tracking-wide mb-2">Real Context</p>
+            <p className="text-slate-700 text-sm">Advice that considers your reality</p>
+          </div>
         </div>
       </div>
     </div>
