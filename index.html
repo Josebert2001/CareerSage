@@ -113,6 +113,52 @@
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
       }
+
+      /* Accessibility & Focus Improvements */
+      *:focus-visible {
+        outline: 2px solid #059669;
+        outline-offset: 2px;
+      }
+
+      /* Skip to main content link */
+      .skip-link {
+        position: absolute;
+        top: -40px;
+        left: 0;
+        background: #059669;
+        color: white;
+        padding: 8px 16px;
+        text-decoration: none;
+        z-index: 100;
+        border-radius: 0 0 4px 0;
+      }
+      .skip-link:focus {
+        top: 0;
+      }
+
+      /* Better button focus states */
+      button:focus-visible {
+        outline: 2px solid #059669;
+        outline-offset: 2px;
+      }
+
+      /* Disable pointer events during animations */
+      html.transitions-disabled * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      /* Reduced motion support */
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+          scroll-behavior: auto !important;
+        }
+      }
     </style>
   <script type="importmap">
 {
@@ -130,6 +176,7 @@
 </script>
 </head>
   <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="mesh-bg"></div>
     <div class="mesh-blob blob-1"></div>
     <div class="mesh-blob blob-2"></div>

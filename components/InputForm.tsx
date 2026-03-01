@@ -171,9 +171,10 @@ const InputForm: React.FC<InputFormProps> = ({
     switch (currentStep) {
       case 0: // Name
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Name input step">
             {renderBubble("Hey. Before anything else — what do I call you?")}
             <div className="pl-12">
+              <label className="sr-only">Enter your first name</label>
               <ConversationalInput 
                 value={profile.name}
                 onChange={(val) => setProfile({ ...profile, name: val })}
@@ -187,68 +188,80 @@ const InputForm: React.FC<InputFormProps> = ({
 
       case 1: // Situation
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Current situation selection">
              {renderBubble(<>Okay {profile.name}. Where are you right now? Not where you want to be — just where you are today.</>, true)}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-12">
+             <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-12 border-0 p-0 m-0">
+               <legend className="sr-only">Select your current situation</legend>
                {SITUATION_OPTIONS.map((opt) => (
                  <button
                    key={opt}
+                   role="radio"
+                   aria-checked={profile.situation === opt}
                    onClick={() => {
                      setProfile({ ...profile, situation: opt });
                      setTimeout(handleNext, 300);
                    }}
-                   className={`p-4 rounded-xl text-left border-2 transition-all hover:-translate-y-1 ${
+                   className={`p-4 md:p-5 rounded-xl text-left border-2 transition-all hover:-translate-y-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 min-h-[56px] ${
                      profile.situation === opt 
                        ? 'border-emerald-500 bg-emerald-50/80 text-emerald-900 font-bold shadow-md' 
                        : 'border-white bg-white/60 text-slate-600 hover:border-emerald-300 hover:shadow-md'
                    }`}
                  >
-                   <div className="flex items-center justify-between">
-                     <span>{opt}</span>
-                     {profile.situation === opt && <Check className="w-4 h-4 text-emerald-600" />}
+                   <div className="flex items-center justify-between gap-3">
+                     <span className="font-medium">{opt}</span>
+                     {profile.situation === opt && <Check className="w-5 h-5 text-emerald-600 flex-shrink-0" aria-hidden="true" />}
                    </div>
                  </button>
                ))}
-             </div>
+             </fieldset>
           </div>
         );
 
       case 2: // Interests
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Interest selection">
             {renderBubble("What do you actually enjoy? Not what looks good on paper — what makes time disappear?", true)}
             <div className="pl-12">
-                <div className="flex flex-wrap gap-2 mb-4">
-                {INTEREST_OPTIONS.map((interest) => {
-                    const isSelected = profile.interests.includes(interest);
-                    return (
-                    <button
-                        key={interest}
-                        onClick={() => {
-                        const newInterests = isSelected
-                            ? profile.interests.filter(i => i !== interest)
-                            : [...profile.interests, interest];
-                        setProfile({ ...profile, interests: newInterests });
-                        }}
-                        className={`px-5 py-2.5 rounded-full text-sm font-semibold border transition-all transform active:scale-95 ${
-                        isSelected
-                            ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/20'
-                            : 'bg-white/80 text-slate-600 border-white hover:border-emerald-300 hover:bg-white hover:shadow-md'
-                        }`}
-                    >
-                        {interest}
-                    </button>
-                    );
-                })}
-                </div>
+                <fieldset className="border-0 p-0 m-0">
+                  <legend className="sr-only">Select your interests (at least one required)</legend>
+                  <div className="flex flex-wrap gap-2 md:gap-3 mb-6">
+                    {INTEREST_OPTIONS.map((interest) => {
+                        const isSelected = profile.interests.includes(interest);
+                        return (
+                        <button
+                            key={interest}
+                            role="checkbox"
+                            aria-checked={isSelected}
+                            onClick={() => {
+                            const newInterests = isSelected
+                                ? profile.interests.filter(i => i !== interest)
+                                : [...profile.interests, interest];
+                            setProfile({ ...profile, interests: newInterests });
+                            }}
+                            className={`px-4 md:px-5 py-2 md:py-2.5 rounded-full text-sm font-semibold border transition-all transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 min-h-[44px] ${
+                            isSelected
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-lg shadow-emerald-500/20'
+                                : 'bg-white/80 text-slate-600 border-white hover:border-emerald-300 hover:bg-white hover:shadow-md'
+                            }`}
+                        >
+                            {interest}
+                        </button>
+                        );
+                    })}
+                  </div>
+                </fieldset>
                 
-                <div className="flex justify-end mt-6">
+                <div className="flex flex-col sm:flex-row justify-end gap-3 mt-8">
+                    {profile.interests.length === 0 && (
+                      <p className="text-sm text-slate-500 text-center sm:text-right">Select at least one interest to continue</p>
+                    )}
                     <button 
                         onClick={handleNext} 
                         disabled={profile.interests.length === 0}
-                        className={`px-8 py-3 rounded-full font-bold transition-all shadow-lg ${
+                        className={`px-8 py-3 rounded-full font-bold transition-all shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 min-h-[44px] ${
                             profile.interests.length > 0 ? 'bg-slate-900 text-white hover:bg-slate-800 hover:-translate-y-0.5' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                         }`}
+                        aria-disabled={profile.interests.length === 0}
                     >
                         Continue
                     </button>
@@ -259,44 +272,50 @@ const InputForm: React.FC<InputFormProps> = ({
 
       case 3: // Constraints
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Constraints and context selection">
              {renderBubble("Real talk — what's the situation at home? Money? Family pressure? I need to know so I don't give you advice that ignores your reality.", true)}
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pl-12">
+             <fieldset className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 pl-12 border-0 p-0 m-0">
+               <legend className="sr-only">Select any constraints or context that apply to you</legend>
                {CONSTRAINT_OPTIONS.map((opt) => {
                  const isSelected = profile.constraints.includes(opt);
                  return (
                     <button
                         key={opt}
+                        role="checkbox"
+                        aria-checked={isSelected}
                         onClick={() => {
                         const newConstraints = isSelected
                             ? profile.constraints.filter(i => i !== opt)
                             : [...profile.constraints, opt];
                         setProfile({ ...profile, constraints: newConstraints });
                         }}
-                        className={`p-3.5 rounded-xl text-left border transition-all ${
+                        className={`p-4 md:p-5 rounded-xl text-left border transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 min-h-[56px] ${
                         isSelected 
                             ? 'border-orange-400 bg-orange-50/80 text-orange-900 shadow-md' 
                             : 'border-white bg-white/60 text-slate-600 hover:border-orange-200 hover:bg-white hover:shadow-sm'
                         }`}
                     >
                         <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isSelected ? 'bg-orange-400 border-orange-400' : 'border-slate-300 bg-white'}`}>
-                                {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                            <div className={`w-5 h-5 md:w-6 md:h-6 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${isSelected ? 'bg-orange-400 border-orange-400' : 'border-slate-300 bg-white'}`}>
+                                {isSelected && <Check className="w-4 h-4 md:w-5 md:h-5 text-white" aria-hidden="true" />}
                             </div>
                             <span className="font-medium">{opt}</span>
                         </div>
                     </button>
                   );
                })}
-             </div>
-             <div className="pl-12 flex justify-end">
-                <button onClick={handleNext} className="text-sm font-semibold text-slate-400 hover:text-emerald-600 underline decoration-slate-300 underline-offset-4 mr-4">
+             </fieldset>
+             <div className="pl-12 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-end mt-8">
+                <button 
+                  onClick={handleNext} 
+                  className="px-6 py-3 text-sm font-semibold text-slate-600 hover:text-emerald-700 hover:bg-slate-100 rounded-full transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                >
                     Skip / None apply
                 </button>
                 {profile.constraints.length > 0 && (
                      <button 
                      onClick={handleNext} 
-                     className="px-6 py-2 rounded-full font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-md"
+                     className="px-8 py-3 rounded-full font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-md transition-all hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-800"
                     >
                      Continue
                     </button>
@@ -307,9 +326,10 @@ const InputForm: React.FC<InputFormProps> = ({
 
       case 4: // Dreams
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Dreams and goals input">
             {renderBubble("Now dream a little. If money and family weren't a problem — what would you be doing in 5 years?", true)}
             <div className="pl-12">
+                <label className="sr-only">Describe your dreams and goals</label>
                 <ConversationalInput 
                     value={profile.dreams}
                     onChange={(val) => setProfile({ ...profile, dreams: val })}
@@ -323,9 +343,10 @@ const InputForm: React.FC<InputFormProps> = ({
 
       case 5: // Concerns
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Concerns and fears input">
              {renderBubble("Last thing. What's the fear? The thing that keeps you up at night about all of this.", true)}
              <div className="pl-12">
+                <label className="sr-only">Describe your concerns and fears</label>
                 <ConversationalInput 
                     value={profile.concerns}
                     onChange={(val) => setProfile({ ...profile, concerns: val })}
@@ -333,8 +354,11 @@ const InputForm: React.FC<InputFormProps> = ({
                     placeholder="I'm worried that..."
                     autoFocus
                 />
-                <div className="mt-2 text-right">
-                    <button onClick={handleNext} className="text-xs font-semibold text-slate-400 hover:text-emerald-600">
+                <div className="mt-4 text-center">
+                    <button 
+                      onClick={handleNext} 
+                      className="text-sm font-semibold text-slate-500 hover:text-emerald-700 hover:underline transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                    >
                         I don't have a specific fear right now
                     </button>
                 </div>
@@ -344,13 +368,21 @@ const InputForm: React.FC<InputFormProps> = ({
 
       case 6: // Documents
         return (
-          <div className="space-y-6">
+          <div className="space-y-6" role="region" aria-label="Document upload">
             {renderBubble("Almost done. Do you have WAEC results, a JAMB score, or a CV? Drop them here and I'll factor them in.", true)}
             
             <div className="pl-12">
                <div 
-                 className="border-2 border-dashed border-emerald-200 bg-white/40 rounded-2xl p-8 text-center hover:bg-emerald-50/50 hover:border-emerald-300 transition-all cursor-pointer group" 
+                 className="border-2 border-dashed border-emerald-200 bg-white/40 rounded-2xl p-6 md:p-8 text-center hover:bg-emerald-50/50 hover:border-emerald-300 transition-all cursor-pointer group focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2" 
                  onClick={() => fileInputRef.current?.click()}
+                 role="button"
+                 tabIndex={0}
+                 onKeyDown={(e) => {
+                   if (e.key === 'Enter' || e.key === ' ') {
+                     e.preventDefault();
+                     fileInputRef.current?.click();
+                   }
+                 }}
                >
                    <input
                         type="file"
@@ -359,39 +391,59 @@ const InputForm: React.FC<InputFormProps> = ({
                         onChange={handleFileChange}
                         className="hidden"
                         accept="image/*,application/pdf"
+                        aria-label="Upload documents (WAEC results, JAMB score, CV)"
                     />
                     <div className="flex flex-col items-center gap-3 text-slate-500 group-hover:text-emerald-600 transition-colors">
-                        <div className="bg-white p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
-                             <Paperclip className="w-6 h-6 text-emerald-500" />
+                        <div className="bg-white p-3 md:p-4 rounded-full shadow-md group-hover:scale-110 transition-transform">
+                             <Paperclip className="w-5 h-5 md:w-6 md:h-6 text-emerald-500" aria-hidden="true" />
                         </div>
-                        <span className="text-sm font-semibold">Add your documents (optional)</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm md:text-base font-semibold">Add your documents (optional)</span>
+                          <span className="text-xs text-slate-400">PDF, images up to 10MB each</span>
+                        </div>
                     </div>
                </div>
 
                 {files.length > 0 && (
-                <div className="flex flex-wrap gap-2 mt-4">
-                    {files.map((file, idx) => (
-                    <div key={idx} className="flex items-center gap-2 bg-white px-3 py-1.5 rounded-lg text-sm text-slate-700 border border-slate-200 shadow-sm">
-                        <span className="truncate max-w-[150px] font-medium">{file.name}</span>
-                        <button type="button" onClick={() => setFiles(files.filter((_, i) => i !== idx))} className="text-slate-400 hover:text-red-500">
-                           <X className="w-4 h-4" />
-                        </button>
+                <div className="space-y-2 mt-6" role="list" aria-label="Uploaded files">
+                    <p className="text-sm font-medium text-slate-600">Uploaded files:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {files.map((file, idx) => (
+                        <div 
+                          key={idx} 
+                          className="flex items-center gap-2 bg-white px-4 py-2 rounded-lg text-sm text-slate-700 border border-slate-200 shadow-sm hover:shadow-md transition-all"
+                          role="listitem"
+                        >
+                            <span className="truncate max-w-[140px] md:max-w-[200px] font-medium">{file.name}</span>
+                            <button 
+                              type="button" 
+                              onClick={() => setFiles(files.filter((_, i) => i !== idx))} 
+                              className="text-slate-400 hover:text-red-500 hover:bg-red-50 p-1 rounded transition-all focus-visible:outline-2 focus-visible:outline-red-500"
+                              aria-label={`Remove file ${file.name}`}
+                            >
+                               <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                      ))}
                     </div>
-                    ))}
                 </div>
                 )}
                 
-                <div className="mt-8 flex justify-end gap-4 items-center">
-                    <button onClick={submitForm} className="text-sm font-semibold text-slate-400 hover:text-emerald-600">
+                <div className="mt-8 md:mt-10 flex flex-col sm:flex-row justify-end gap-3 md:gap-4 items-stretch sm:items-center">
+                    <button 
+                      onClick={submitForm} 
+                      className="px-6 py-3 text-sm font-semibold text-slate-600 hover:text-emerald-700 hover:bg-slate-100 rounded-full transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                    >
                         Skip — I don't have any right now
                     </button>
                     <button
                         onClick={submitForm}
                         disabled={isLoading}
                         className={`
-                            flex items-center gap-2 px-8 py-3.5 rounded-full font-bold text-white shadow-xl transition-all transform hover:scale-105 active:scale-95 text-lg
-                            ${isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-900 hover:bg-emerald-800'}
+                            flex items-center justify-center gap-2 px-6 md:px-8 py-3 md:py-3.5 rounded-full font-bold text-white shadow-lg transition-all transform focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700 min-h-[44px] md:min-h-auto text-base
+                            ${isLoading ? 'bg-slate-400 cursor-not-allowed' : 'bg-emerald-900 hover:bg-emerald-800 hover:-translate-y-0.5 active:scale-95'}
                         `}
+                        aria-busy={isLoading}
                     >
                         {isLoading ? "Analyzing..." : "Generate My Plan ✨"}
                     </button>
