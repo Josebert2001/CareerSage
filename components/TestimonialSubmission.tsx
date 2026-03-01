@@ -205,7 +205,7 @@ const TestimonialSubmission: React.FC<TestimonialSubmissionProps> = ({ onSubmitt
           </form>
         )}
       </div>
-    </div>
+    </section>
   );
 };
 
