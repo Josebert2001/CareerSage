@@ -50,41 +50,43 @@ const TestimonialsDisplay: React.FC = () => {
   const current = testimonials[activeIndex];
 
   return (
-    <div className="max-w-4xl mx-auto mt-16 mb-8 animate-fadeIn">
+    <section className="max-w-4xl mx-auto mt-16 md:mt-20 mb-12 md:mb-16 animate-fadeIn" aria-label="Customer testimonials">
       {/* Section header */}
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-card mb-4">
-          <Users className="w-4 h-4 text-blue-500" />
-          <span className="text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+      <div className="text-center mb-10 md:mb-12">
+        <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full glass-card mb-5 border border-blue-100/50">
+          <Users className="w-4 h-4 text-blue-500" aria-hidden="true" />
+          <span className="text-xs md:text-sm font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent uppercase tracking-wide">
             Community Stories
           </span>
         </div>
-        <h3 className="text-2xl font-bold text-slate-900 mb-2">What Others Are Saying</h3>
-        <p className="text-slate-500 text-sm">
+        <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-3" role="heading" aria-level={2}>What Others Are Saying</h3>
+        <p className="text-slate-600 text-sm md:text-base">
           Real experiences from people who used CareerSage
         </p>
       </div>
 
       {/* Card */}
-      <div className="relative glass-card rounded-3xl p-8 md:p-10">
-        <Quote className="absolute top-6 left-6 w-10 h-10 text-blue-100" />
+      <div className="relative glass-card rounded-3xl p-8 md:p-12 hover:shadow-lg transition-all">
+        <Quote className="absolute top-6 md:top-8 left-6 md:left-8 w-10 md:w-12 h-10 md:h-12 text-blue-100 opacity-60" aria-hidden="true" />
 
-        <div className="relative z-10 text-center">
+        <div className="relative z-10 text-center space-y-6 md:space-y-8">
           {/* Stars */}
-          <div className="flex justify-center gap-1 mb-4">
+          <div className="flex justify-center gap-1.5" aria-label="5 out of 5 stars">
             {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="w-5 h-5 text-amber-400 fill-amber-400" />
+              <Star key={i} className="w-5 h-5 md:w-6 md:h-6 text-amber-400 fill-amber-400" aria-hidden="true" />
             ))}
           </div>
 
           {/* Body */}
-          <blockquote className="text-lg md:text-xl text-slate-700 italic leading-relaxed mb-6 max-w-2xl mx-auto">
+          <blockquote className="text-lg md:text-xl lg:text-2xl text-slate-700 leading-relaxed max-w-2xl mx-auto">
             &ldquo;{current.testimonial}&rdquo;
           </blockquote>
 
           {/* Attribution */}
-          <div className="font-semibold text-slate-900">{current.name}</div>
-          <div className="text-sm text-slate-500">{current.role}</div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="font-bold text-slate-900 text-base md:text-lg">{current.name}</div>
+            <div className="text-sm md:text-base text-slate-500">{current.role}</div>
+          </div>
         </div>
 
         {/* Nav arrows */}
@@ -92,40 +94,42 @@ const TestimonialsDisplay: React.FC = () => {
           <>
             <button
               onClick={() => goTo(-1)}
-              aria-label="Previous testimonial"
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow transition-all"
+              aria-label={`Previous testimonial, ${activeIndex === 0 ? 'Testimonial ' + testimonials.length : 'Testimonial ' + activeIndex}`}
+              className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 hover:bg-white shadow-md hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <ChevronLeft className="w-5 h-5 text-slate-600" />
+              <ChevronLeft className="w-5 h-5 md:w-6 md:h-6 text-slate-600" aria-hidden="true" />
             </button>
             <button
               onClick={() => goTo(1)}
-              aria-label="Next testimonial"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white shadow transition-all"
+              aria-label={`Next testimonial, Testimonial ${activeIndex === testimonials.length - 1 ? 1 : activeIndex + 2}`}
+              className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 p-2 md:p-3 rounded-full bg-white/80 hover:bg-white shadow-md hover:shadow-lg transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 min-h-[44px] min-w-[44px] flex items-center justify-center"
             >
-              <ChevronRight className="w-5 h-5 text-slate-600" />
+              <ChevronRight className="w-5 h-5 md:w-6 md:h-6 text-slate-600" aria-hidden="true" />
             </button>
           </>
         )}
       </div>
 
-      {/* Dots */}
+      {/* Dots - Indicator */}
       {testimonials.length > 1 && (
-        <div className="flex justify-center gap-2 mt-4">
+        <div className="flex justify-center gap-2 mt-6 md:mt-8" role="tablist" aria-label="Testimonial selector">
           {testimonials.map((_, i) => (
             <button
               key={i}
               onClick={() => { setActiveIndex(i); startAutoRotate(); }}
-              aria-label={`Go to testimonial ${i + 1}`}
-              className={`w-2 h-2 rounded-full transition-all ${
+              role="tab"
+              aria-selected={i === activeIndex}
+              aria-label={`Go to testimonial ${i + 1} of ${testimonials.length}`}
+              className={`transition-all rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 ${
                 i === activeIndex
-                  ? 'bg-blue-500 w-6'
-                  : 'bg-slate-300 hover:bg-slate-400'
+                  ? 'bg-blue-500 w-8 h-2.5'
+                  : 'bg-slate-300 hover:bg-slate-400 w-2 h-2.5'
               }`}
             />
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 };
 

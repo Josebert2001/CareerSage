@@ -38,20 +38,35 @@ const AccordionItem: React.FC<AccordionItemProps> = ({
   title, icon: Icon, children, iconColor = "text-slate-500", defaultOpen = false, className = ""
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+  const headerId = `accordion-${title.replace(/\s+/g, '-')}`;
+  const contentId = `accordion-content-${title.replace(/\s+/g, '-')}`;
+  
   return (
-    <div className={`border border-white/60 rounded-xl bg-white/50 backdrop-blur-sm overflow-hidden shadow-sm transition-all duration-200 ${className}`}>
+    <div className={`border border-white/60 rounded-xl bg-white/50 backdrop-blur-sm overflow-hidden shadow-sm transition-all duration-300 hover:shadow-md hover:border-slate-200 ${className}`}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/60 transition-colors cursor-pointer"
+        className="w-full flex items-center justify-between p-4 md:p-5 hover:bg-white/60 active:bg-white/80 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
         type="button"
+        id={headerId}
+        aria-expanded={isOpen}
+        aria-controls={contentId}
       >
-        <div className="flex items-center gap-3 font-semibold text-slate-800">
-          <Icon className={`w-5 h-5 ${iconColor}`} />
-          {title}
+        <div className="flex items-center gap-3 font-semibold text-slate-800 text-sm md:text-base">
+          <Icon className={`w-5 h-5 flex-shrink-0 ${iconColor}`} aria-hidden="true" />
+          <span>{title}</span>
         </div>
-        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform duration-300 flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} aria-hidden="true" />
       </button>
-      {isOpen && <div className="p-5 border-t border-slate-100/50 animate-fadeIn bg-white/40">{children}</div>}
+      {isOpen && (
+        <div 
+          className="p-4 md:p-5 border-t border-slate-100/50 animate-fadeIn bg-white/40 text-slate-700 text-sm md:text-base leading-relaxed"
+          id={contentId}
+          role="region"
+          aria-labelledby={headerId}
+        >
+          {children}
+        </div>
+      )}
     </div>
   );
 };
@@ -84,27 +99,56 @@ const SalaryChart: React.FC<{ min: number; max: number; currency: string }> = ({
 const DemandGauge: React.FC<{ score: number }> = ({ score }) => {
     if (score === undefined || score === 0) return null;
     const color = score > 75 ? "bg-emerald-500" : score > 40 ? "bg-amber-500" : "bg-red-500";
-    const text = score > 75 ? "High Demand" : score > 40 ? "Moderate" : "Low Demand";
+    const textColor = score > 75 ? "text-emerald-700 bg-emerald-50" : score > 40 ? "text-amber-700 bg-amber-50" : "text-red-700 bg-red-50";
+    const text = score > 75 ? "High Demand" : score > 40 ? "Moderate Demand" : "Low Demand";
     return (
-      <div className="flex flex-col gap-2">
-        <div className="flex justify-between text-xs font-bold text-slate-400 uppercase tracking-wide"><span>Saturation</span><span>High Growth</span></div>
-        <div className="h-3 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
-          <div className={`h-full ${color} transition-all duration-1000 ease-out shadow-[0_0_10px_rgba(0,0,0,0.1)]`} style={{ width: `${score}%` }} />
+      <div className="flex flex-col gap-3">
+        <div className="flex justify-between text-xs font-bold text-slate-500 uppercase tracking-wide px-1">
+          <span>Low Growth</span>
+          <span>High Growth</span>
         </div>
-        <div className="flex justify-end"><span className={`text-xs font-bold px-2 py-1 rounded-full ${color} bg-opacity-10 text-slate-700`}>{text} ({score}/100)</span></div>
+        <div className="h-2 w-full bg-slate-200 rounded-full overflow-hidden shadow-inner">
+          <div 
+            className={`h-full ${color} transition-all duration-1000 ease-out`} 
+            style={{ width: `${score}%` }}
+            role="progressbar"
+            aria-valuenow={score}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Market demand: ${text}`}
+          />
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-xs font-medium text-slate-500">Market Demand</span>
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${textColor}`}>{text}</span>
+        </div>
       </div>
     );
 };
 
 const ActionStepCheckbox: React.FC<{ step: string; id: string }> = ({ step, id }) => {
     const [checked, setChecked] = useState(() => localStorage.getItem(id) === 'true');
-    const toggle = () => { const newState = !checked; setChecked(newState); localStorage.setItem(id, String(newState)); };
+    const toggle = () => { 
+      const newState = !checked; 
+      setChecked(newState); 
+      localStorage.setItem(id, String(newState)); 
+    };
     return (
-      <li className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/50 transition-colors cursor-pointer group" onClick={toggle}>
-        <div className={`mt-0.5 flex-shrink-0 w-5 h-5 rounded-md border flex items-center justify-center transition-all duration-300 ${checked ? 'bg-emerald-500 border-emerald-500 shadow-sm' : 'border-slate-300 bg-white group-hover:border-emerald-400'}`}>
-          {checked && <CheckCircle className="w-3.5 h-3.5 text-white" />}
-        </div>
-        <span className={`text-sm leading-relaxed transition-all font-medium ${checked ? 'text-slate-400 line-through' : 'text-slate-700'}`}>{step}</span>
+      <li className="flex items-start gap-3 p-3 md:p-4 rounded-xl hover:bg-white/60 active:bg-white/40 transition-colors cursor-pointer group focus-within:ring-2 focus-within:ring-emerald-500 focus-within:ring-offset-2">
+        <input 
+          type="checkbox" 
+          id={id}
+          checked={checked}
+          onChange={toggle}
+          className="mt-1 w-5 h-5 rounded-md border border-slate-300 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 accent-emerald-500"
+          aria-label={`Mark as completed: ${step}`}
+        />
+        <label 
+          htmlFor={id}
+          className={`flex-1 text-sm md:text-base leading-relaxed transition-all font-medium cursor-pointer select-none ${checked ? 'text-slate-400 line-through' : 'text-slate-700'}`}
+        >
+          {step}
+        </label>
       </li>
     );
 };
@@ -155,9 +199,10 @@ const FutureSelfPolaroid: React.FC<{ pathwayTitle: string; userContext: string }
        <button 
          onClick={handleGenerate}
          disabled={loading}
-         className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white text-sm font-bold rounded-full hover:shadow-lg hover:shadow-purple-500/30 transition-all flex items-center gap-2 transform active:scale-95"
+         className="px-6 md:px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white text-sm md:text-base font-bold rounded-full shadow-lg shadow-purple-500/20 hover:shadow-xl hover:shadow-purple-500/30 transition-all flex items-center gap-2 transform active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-purple-600 disabled:opacity-50 disabled:cursor-not-allowed min-h-[44px]"
+         aria-busy={loading}
        >
-         {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+         {loading ? <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" aria-hidden="true" /> : <Sparkles className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />}
          {loading ? "Developing Photo..." : "Generate Snapshot"}
        </button>
     </div>
@@ -173,32 +218,32 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
   const renderPathway = (pathway: Pathway, type: 'practical' | 'growth') => (
     <div className="animate-fadeIn space-y-6">
       {/* Header Section */}
-      <div className={`p-8 rounded-3xl ${type === 'practical' ? 'bg-gradient-to-br from-emerald-50 to-white border border-emerald-100' : 'bg-gradient-to-br from-orange-50 to-white border border-orange-100'} shadow-lg shadow-slate-200/50`}>
-        <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <span className={`text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-md shadow-sm ${type === 'practical' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
+      <div className={`p-6 md:p-8 rounded-3xl ${type === 'practical' ? 'bg-gradient-to-br from-emerald-50 to-white border border-emerald-100' : 'bg-gradient-to-br from-orange-50 to-white border border-orange-100'} shadow-lg shadow-slate-200/50`}>
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 md:gap-6 mb-6 md:mb-8">
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-3">
+              <span className={`text-xs font-extrabold uppercase tracking-widest px-3 py-1.5 rounded-lg shadow-sm ${type === 'practical' ? 'bg-emerald-100 text-emerald-700' : 'bg-orange-100 text-orange-700'}`}>
                 {type === 'practical' ? 'Option A: Right Now' : 'Option B: The 5-Year Vision'}
               </span>
             </div>
-            <h3 className={`text-3xl md:text-4xl font-black ${type === 'practical' ? 'text-emerald-900' : 'text-orange-900'} tracking-tight`}>
+            <h3 className={`text-2xl sm:text-3xl md:text-4xl font-black leading-tight ${type === 'practical' ? 'text-emerald-900' : 'text-orange-900'} tracking-tight`}>
               {pathway.title}
             </h3>
           </div>
           
           {/* Action Buttons */}
-          <div className="flex gap-2 flex-wrap md:flex-nowrap">
+          <div className="flex gap-2 flex-wrap sm:flex-nowrap justify-stretch sm:justify-end">
             <button 
                 onClick={() => onSimulate(pathway)}
-                className="flex items-center gap-2 bg-white text-slate-800 px-6 py-3 rounded-full font-bold shadow-sm border border-slate-200 hover:shadow-xl hover:border-emerald-300 hover:text-emerald-900 transition-all group active:scale-95"
+                className="flex items-center justify-center gap-2 bg-white text-slate-800 px-4 sm:px-6 py-3 rounded-full font-bold shadow-md border border-slate-200 hover:shadow-lg hover:border-emerald-300 hover:text-emerald-900 hover:bg-white/80 active:scale-95 transition-all group focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 min-h-[44px] flex-1 sm:flex-none text-sm md:text-base"
             >
-                <Gamepad2 className="w-5 h-5 text-emerald-600 group-hover:scale-110 transition-transform" />
+                <Gamepad2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0" aria-hidden="true" />
                 <span>Step into this life</span>
             </button>
           </div>
         </div>
 
-        <p className="text-slate-700 text-lg leading-relaxed mb-8 bg-white/60 p-6 rounded-2xl backdrop-blur-sm border border-white/80">
+        <p className="text-slate-700 text-base md:text-lg leading-relaxed mb-8 bg-white/60 p-5 md:p-6 rounded-2xl backdrop-blur-sm border border-white/80">
           {pathway.fitReason}
         </p>
 
@@ -228,12 +273,12 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
         )}
       </div>
 
-      <div className="glass-card p-8 rounded-3xl border-l-4 border-l-emerald-600">
-        <h4 className="flex flex-col gap-1 mb-6">
-          <span className="text-emerald-900 text-2xl font-black">You don't need to figure everything out today. Start here.</span>
-          <span className="text-slate-500 text-sm font-medium">Small steps to take this week</span>
-        </h4>
-        <ul className="space-y-1">
+      <div className="glass-card p-6 md:p-8 rounded-3xl border-l-4 border-l-emerald-600 hover:shadow-md transition-all">
+        <div className="mb-6 md:mb-8">
+          <h4 className="text-xl md:text-2xl font-black text-emerald-900 mb-2 leading-tight">You don't need to figure everything out today. Start here.</h4>
+          <p className="text-slate-500 text-sm font-medium">Small steps to take this week</p>
+        </div>
+        <ul className="space-y-1" role="list">
           {safeArray(pathway.actionSteps).map((step, i) => (
              <ActionStepCheckbox key={i} step={step} id={`step-${type}-${i}-${pathway.title.substring(0,5)}`} />
           ))}
@@ -289,23 +334,39 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
 
       {/* 3. The Pathways UI */}
       <Reveal delay={2500}>
-        <div className="mb-12">
-            <div className="flex justify-center p-2 bg-emerald-900/5 backdrop-blur-md rounded-full mb-10 max-w-xl mx-auto border border-emerald-900/10 shadow-inner">
+        <div className="mb-12 md:mb-16">
+            <div className="flex justify-center p-1.5 bg-emerald-900/5 backdrop-blur-md rounded-full mb-10 md:mb-12 max-w-2xl mx-auto border border-emerald-900/10 shadow-inner gap-1" role="tablist">
               <button 
-                onClick={() => setActiveTab('practical')} 
-                className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-full text-sm font-black transition-all ${activeTab === 'practical' ? 'bg-emerald-900 text-white shadow-lg' : 'text-emerald-900/60 hover:text-emerald-900 hover:bg-white/50'}`}
+                onClick={() => setActiveTab('practical')}
+                role="tab"
+                aria-selected={activeTab === 'practical'}
+                aria-controls="practical-panel"
+                className={`flex-1 flex items-center justify-center gap-2 py-3 md:py-4 px-4 rounded-full text-xs md:text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 min-h-[44px] ${activeTab === 'practical' ? 'bg-emerald-900 text-white shadow-md' : 'text-emerald-900/60 hover:text-emerald-900 hover:bg-white/50'}`}
               >
-                  <Briefcase className="w-4 h-4" /> What you can do right now
+                  <Briefcase className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" aria-hidden="true" /> 
+                  <span className="hidden sm:inline">What you can do right now</span>
+                  <span className="sm:hidden">Right Now</span>
               </button>
               <button 
-                onClick={() => setActiveTab('growth')} 
-                className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-full text-sm font-black transition-all ${activeTab === 'growth' ? 'bg-orange-600 text-white shadow-lg' : 'text-orange-900/60 hover:text-orange-900 hover:bg-white/50'}`}
+                onClick={() => setActiveTab('growth')}
+                role="tab"
+                aria-selected={activeTab === 'growth'}
+                aria-controls="growth-panel"
+                className={`flex-1 flex items-center justify-center gap-2 py-3 md:py-4 px-4 rounded-full text-xs md:text-sm font-bold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-600 min-h-[44px] ${activeTab === 'growth' ? 'bg-orange-600 text-white shadow-md' : 'text-orange-900/60 hover:text-orange-900 hover:bg-white/50'}`}
               >
-                  <TrendingUp className="w-4 h-4" /> Where you can actually be in 5 years
+                  <TrendingUp className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" aria-hidden="true" /> 
+                  <span className="hidden sm:inline">Where you can be in 5 years</span>
+                  <span className="sm:hidden">5-Year Path</span>
               </button>
             </div>
 
-            {activeTab === 'practical' ? renderPathway(data.practicalPathway, 'practical') : renderPathway(data.growthPathway, 'growth')}
+            <div 
+              id={activeTab === 'practical' ? 'practical-panel' : 'growth-panel'}
+              role="tabpanel"
+              aria-labelledby={activeTab === 'practical' ? 'practical-tab' : 'growth-tab'}
+            >
+              {activeTab === 'practical' ? renderPathway(data.practicalPathway, 'practical') : renderPathway(data.growthPathway, 'growth')}
+            </div>
         </div>
       </Reveal>
 
@@ -327,26 +388,43 @@ const ResultView: React.FC<ResultViewProps> = ({ data, onReset, onSimulate }) =>
 
       {/* 5. Closing */}
       <Reveal delay={4500}>
-        <div className="bg-emerald-950 text-white rounded-[2rem] p-10 md:p-16 text-center relative overflow-hidden space-y-8 shadow-2xl shadow-emerald-900/40">
+        <div className="bg-emerald-950 text-white rounded-3xl md:rounded-[2rem] p-8 md:p-12 lg:p-16 text-center relative overflow-hidden space-y-8 md:space-y-10 shadow-2xl shadow-emerald-900/40">
             <div className="absolute top-0 left-0 w-full h-full opacity-10 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-emerald-400 via-transparent to-transparent"></div>
             
-            <div className="relative z-10">
-              <h4 className="text-xs font-bold text-emerald-400 mb-6 uppercase tracking-[0.3em]">This is your starting point, not your ceiling.</h4>
-              <p className="text-emerald-100 mb-12 max-w-2xl mx-auto text-xl md:text-2xl leading-relaxed opacity-90 font-medium italic">"{data.closingMessage}"</p>
+            <div className="relative z-10 space-y-6 md:space-y-8">
+              <div>
+                <p className="text-xs font-bold text-emerald-400 mb-4 md:mb-6 uppercase tracking-widest">This is your starting point, not your ceiling.</p>
+                <p className="text-emerald-100 max-w-2xl mx-auto text-lg md:text-xl lg:text-2xl leading-relaxed opacity-90 font-medium italic">"{data.closingMessage}"</p>
+              </div>
               
-              <div className="flex flex-col md:flex-row justify-center items-center gap-6 pt-8 border-t border-white/10">
-                <div className="flex flex-col items-center gap-4">
-                  <p className="text-sm font-bold text-emerald-400/60 uppercase tracking-widest">Did this feel true to your situation?</p>
-                  <div className="flex gap-4">
-                      <button onClick={() => setFeedbackState('helpful')} className={`flex items-center gap-2 px-8 py-3 rounded-full border-2 transition-all font-bold ${feedbackState === 'helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900'}`}><ThumbsUp className="w-4 h-4" /> Yes, this is me</button>
-                      <button onClick={() => setFeedbackState('not-helpful')} className={`flex items-center gap-2 px-8 py-3 rounded-full border-2 transition-all font-bold ${feedbackState === 'not-helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900'}`}><ThumbsDown className="w-4 h-4" /> Not quite</button>
+              <div className="flex flex-col gap-6 md:gap-8 pt-8 md:pt-10 border-t border-white/10">
+                <div className="flex flex-col items-center gap-3 md:gap-4">
+                  <p className="text-xs md:text-sm font-bold text-emerald-400/60 uppercase tracking-widest">Did this feel true to your situation?</p>
+                  <div className="flex gap-3 md:gap-4 flex-wrap justify-center">
+                      <button 
+                        onClick={() => setFeedbackState('helpful')}
+                        aria-pressed={feedbackState === 'helpful'}
+                        className={`flex items-center gap-2 px-6 md:px-8 py-3 rounded-full border-2 transition-all font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white min-h-[44px] text-sm md:text-base ${feedbackState === 'helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900/50'}`}
+                      >
+                        <ThumbsUp className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> Yes, this is me
+                      </button>
+                      <button 
+                        onClick={() => setFeedbackState('not-helpful')}
+                        aria-pressed={feedbackState === 'not-helpful'}
+                        className={`flex items-center gap-2 px-6 md:px-8 py-3 rounded-full border-2 transition-all font-bold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white min-h-[44px] text-sm md:text-base ${feedbackState === 'not-helpful' ? 'bg-white text-emerald-900 border-white' : 'border-emerald-800 text-emerald-100 hover:bg-emerald-900/50'}`}
+                      >
+                        <ThumbsDown className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" /> Not quite
+                      </button>
                   </div>
                 </div>
                 
-                <div className="h-px w-full md:w-px md:h-20 bg-white/10 mx-4"></div>
+                <div className="h-px w-full bg-white/10"></div>
 
-                <button onClick={onReset} className="inline-flex items-center gap-3 px-10 py-4 bg-white text-emerald-950 rounded-full font-black text-lg hover:bg-emerald-50 transition-all shadow-xl hover:-translate-y-1 active:scale-95">
-                  Start a new session <ArrowRight className="w-5 h-5" />
+                <button 
+                  onClick={onReset}
+                  className="inline-flex items-center justify-center gap-2 md:gap-3 px-8 md:px-10 py-4 bg-white text-emerald-950 rounded-full font-black text-base md:text-lg hover:bg-emerald-50 hover:shadow-xl hover:-translate-y-1 transition-all active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white min-h-[48px]"
+                >
+                  Start a new session <ArrowRight className="w-4 h-4 md:w-5 md:h-5" aria-hidden="true" />
                 </button>
               </div>
             </div>

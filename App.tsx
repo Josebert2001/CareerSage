@@ -143,7 +143,7 @@ const App: React.FC = () => {
     <div className="min-h-screen flex flex-col font-sans text-slate-800 bg-transparent">
       
       {/* Modern Top Navigation Bar */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${appState === AppState.WELCOME ? 'bg-transparent border-transparent pt-4' : 'bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-sm'}`}>
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${appState === AppState.WELCOME ? 'bg-transparent border-transparent pt-4' : 'bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-sm'}`} role="banner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between">
           
           {/* Brand / Logo */}
@@ -167,7 +167,8 @@ const App: React.FC = () => {
           {/* Center Navigation - Pill Design */}
           {appState !== AppState.WELCOME && (
             <div className="flex-1 flex justify-center px-4">
-               <nav className="flex items-center gap-1 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-full border border-slate-200/60 shadow-inner overflow-x-auto no-scrollbar max-w-full">
+               <nav className="flex items-center gap-1 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-full border border-slate-200/60 shadow-inner overflow-x-auto no-scrollbar max-w-full" role="navigation" aria-label="Mode selection">
+
                   
                   <button
                     onClick={() => switchMode('text')}
@@ -248,7 +249,7 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12 relative">
+      <main id="main-content" className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12 relative" role="main">
         
         {/* Welcome Screen Logic */}
         {appState === AppState.WELCOME ? (
@@ -306,18 +307,20 @@ const App: React.FC = () => {
                     {appState === AppState.ANALYZING && <LoadingScreen />}
 
                     {appState === AppState.ERROR && (
-                    <div className="max-w-md mx-auto text-center py-20 animate-fadeIn glass-card rounded-3xl p-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
-                        <Compass className="w-8 h-8 text-red-500" />
+                    <div className="max-w-md mx-auto text-center py-16 md:py-24 animate-fadeIn">
+                        <div className="glass-card rounded-3xl p-8 md:p-12">
+                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-8">
+                            <Compass className="w-8 h-8 text-red-500" aria-hidden="true" />
+                          </div>
+                          <h3 className="text-2xl font-bold text-slate-900 mb-3">Analysis Failed</h3>
+                          <p className="text-slate-600 mb-8 text-sm md:text-base leading-relaxed">{errorMsg}</p>
+                          <button
+                            onClick={() => setAppState(AppState.IDLE)}
+                            className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
+                          >
+                            Try Again
+                          </button>
                         </div>
-                        <h3 className="text-xl font-bold text-slate-900 mb-2">Analysis Failed</h3>
-                        <p className="text-slate-600 mb-6">{errorMsg}</p>
-                        <button
-                        onClick={() => setAppState(AppState.IDLE)}
-                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-                        >
-                        Try Again
-                        </button>
                     </div>
                     )}
 
@@ -349,7 +352,7 @@ const App: React.FC = () => {
       )}
 
       {/* Footer */}
-      <footer className="py-6 mt-auto">
+      <footer className="py-6 mt-auto" role="contentinfo">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs font-medium text-slate-400">
             Built by Gemini 3 Pro 
