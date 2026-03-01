@@ -20,7 +20,7 @@
         overflow-x: hidden;
       }
       
-      /* Modern Animated Background - Warm Earthy Tones */
+      /* Modern Animated Background - Glassmorphism Support */
       .mesh-bg {
         position: fixed;
         top: 0;
@@ -29,25 +29,25 @@
         height: 100vh;
         z-index: -1;
         background: 
-          radial-gradient(at 0% 0%, hsla(140, 30%, 94%, 1) 0, transparent 50%), 
-          radial-gradient(at 50% 0%, hsla(20, 40%, 95%, 1) 0, transparent 50%), 
-          radial-gradient(at 100% 0%, hsla(160, 25%, 93%, 1) 0, transparent 50%);
+          radial-gradient(at 20% 30%, hsla(160, 50%, 92%, 1) 0, transparent 50%), 
+          radial-gradient(at 80% 20%, hsla(140, 45%, 91%, 1) 0, transparent 50%), 
+          radial-gradient(at 50% 80%, hsla(170, 40%, 93%, 1) 0, transparent 50%);
         background-size: 200% 200%;
-        animation: gradient-move 15s ease infinite;
+        animation: gradient-move 20s ease infinite;
       }
 
       .mesh-blob {
         position: fixed;
-        filter: blur(60px);
+        filter: blur(80px);
         z-index: -1;
-        opacity: 0.4;
-        animation: blob-bounce 10s infinite ease-in-out;
+        opacity: 0.3;
+        animation: blob-bounce 12s infinite ease-in-out;
         will-change: transform;
         contain: strict;
       }
-      .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ecfdf5; animation-delay: 0s; } /* Soft Green */
-      .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #fff7ed; animation-delay: 2s; } /* Soft Terracotta/Orange */
-      .blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: #fefce8; animation-delay: 4s; } /* Soft Yellow */
+      .blob-1 { top: -15%; left: -10%; width: 60vw; height: 60vw; background: #10b981; animation-delay: 0s; } /* Emerald */
+      .blob-2 { bottom: -20%; right: -15%; width: 55vw; height: 55vw; background: #14b8a6; animation-delay: 2s; } /* Teal */
+      .blob-3 { top: 50%; left: 50%; width: 45vw; height: 45vw; background: #0d9488; animation-delay: 4s; } /* Dark Teal */
 
       @keyframes gradient-move {
         0% { background-position: 0% 50%; }
