@@ -44,45 +44,45 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
           {/* Gradient border accent */}
           <div className="absolute inset-0 rounded-3xl md:rounded-4xl bg-gradient-to-br from-emerald-300/10 via-transparent to-teal-300/10 pointer-events-none" />
           
-          <div className="relative z-10 space-y-8 md:space-y-10">
-            {/* Dynamic Context Tag - Glassmorphic Badge */}
-            <div className="h-7 md:h-8 overflow-hidden">
-              <p className="text-emerald-700 font-medium text-sm md:text-base transition-all duration-500 transform translate-y-0">
+          <div className="relative z-10 space-y-6 md:space-y-8">
+            {/* Dynamic Context Tag */}
+            <div className="h-8 md:h-10 overflow-hidden">
+              <p className="text-emerald-600 font-semibold text-base md:text-lg transition-all duration-500 transform translate-y-0">
                 {HOOKS[hookIndex]}
               </p>
             </div>
-            
-            {/* Main Headline - Bold and Clear */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 leading-tight tracking-tight" role="heading" aria-level={1}>
+
+            {/* Main Headline */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-slate-900 leading-[1.1] tracking-tight" role="heading" aria-level={1}>
               Navigate your career with clarity
             </h1>
-            
-            {/* Subheading - Vibrant and Inspiring */}
-            <p className="text-lg md:text-xl text-slate-700 leading-relaxed font-light">
+
+            {/* Subheading */}
+            <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-xl">
               Get personalized guidance for JAMB, NYSC, and beyond. CareerSage understands your reality and helps you make confident decisions.
             </p>
 
-            {/* CTA Section - Elegant and Clear */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 pt-4">
-              <button 
+            {/* CTA Section */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 md:gap-6 pt-6">
+              <button
                 onClick={handleStart}
-                className="inline-flex items-center gap-2 px-7 md:px-9 py-3.5 md:py-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-semibold text-base md:text-lg shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                className="inline-flex items-center gap-2 px-8 md:px-10 py-4 md:py-5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white rounded-xl font-bold text-lg md:text-xl shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 transition-all transform hover:-translate-y-0.5 active:scale-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
                 aria-label="Start career guidance by telling your situation"
               >
                 <span>Begin Assessment</span>
-                <ArrowRight className="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-x-0.5" />
+                <ArrowRight className="w-5 h-5 md:w-6 md:h-6 transition-transform group-hover:translate-x-0.5" />
               </button>
-              
+
               {/* Trust indicator */}
-              <p className="text-sm text-slate-600 font-medium">
+              <p className="text-base md:text-lg text-slate-500 font-medium">
                 5 min • No signup needed
               </p>
             </div>
           </div>
         </div>
 
-        {/* Feature Pills Below - Light Glassmorphic Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mt-8 md:mt-10">
+        {/* Feature Pills Below */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5 mt-10 md:mt-12">
           {[
             { label: "JAMB & WAEC", desc: "Exam guidance" },
             { label: "Career Paths", desc: "Real options" },
@@ -90,10 +90,10 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
           ].map((item, idx) => (
             <div
               key={idx}
-              className="backdrop-blur-lg bg-white/20 border border-white/30 rounded-xl md:rounded-2xl p-4 md:p-5 hover:bg-white/30 hover:border-white/40 transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-emerald-200/10"
+              className="backdrop-blur-lg bg-white/20 border border-white/30 rounded-xl md:rounded-2xl p-5 md:p-6 hover:bg-white/30 hover:border-white/40 transition-all duration-300 shadow-sm hover:shadow-md hover:shadow-emerald-200/10"
             >
-              <p className="text-emerald-700 font-semibold text-sm md:text-base mb-1">{item.label}</p>
-              <p className="text-slate-600 text-xs md:text-sm font-light">{item.desc}</p>
+              <p className="text-emerald-700 font-bold text-base md:text-lg mb-1.5">{item.label}</p>
+              <p className="text-slate-600 text-sm md:text-base">{item.desc}</p>
             </div>
           ))}
         </div>
