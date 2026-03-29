@@ -47,7 +47,7 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
         setMessages([{
           id: 'init',
           role: 'model',
-          text: "Hello! I'm your Agentic Career Researcher.\n\nI can verify facts, check job market trends, or find scholarship deadlines using real-time web search.\n\nTry asking: 'What is the starting salary for a Data Analyst in Lagos right now?'"
+          text: "Hello! I'm your Agentic Career Researcher.\n\nI can verify facts, check job market trends, or find scholarship deadlines using real-time Google Search.\n\nTry asking: 'What is the starting salary for a Data Analyst in Lagos right now?'"
         }]);
       }
     } catch (e) {
@@ -132,25 +132,6 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
       let fullText = '';
       let sources: Source[] = [];
       let toolActivity = 'Generating response...';
-      let pendingUpdate = false;
-
-      const flushUpdate = () => {
-        pendingUpdate = false;
-        setMessages(prev => {
-          const newHistory = [...prev];
-          const lastIdx = newHistory.findIndex(m => m.id === thinkingMsgId);
-          if (lastIdx !== -1) {
-            newHistory[lastIdx] = {
-              ...newHistory[lastIdx],
-              text: fullText,
-              isTyping: false,
-              sources: sources.length > 0 ? sources : undefined,
-              toolUse: sources.length > 0 ? 'Verified with live web search' : undefined
-            };
-          }
-          return newHistory;
-        });
-      };
 
       for await (const chunk of result) {
         const c = chunk as GenerateContentResponse;
@@ -168,15 +149,33 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
           });
         }
 
-        // Batch UI updates — schedule at most one render per animation frame
-        if (!pendingUpdate) {
-          pendingUpdate = true;
-          requestAnimationFrame(flushUpdate);
-        }
+        setMessages(prev => {
+          const newHistory = [...prev];
+          const lastIdx = newHistory.findIndex(m => m.id === thinkingMsgId);
+          if (lastIdx !== -1) {
+            newHistory[lastIdx] = {
+              ...newHistory[lastIdx],
+              text: fullText,
+              isTyping: false,
+              sources: sources.length > 0 ? sources : undefined,
+              toolUse: sources.length > 0 ? 'Verified with Google Search' : undefined
+            };
+          }
+          return newHistory;
+        });
       }
       
-      // Final flush to ensure last chunk is rendered
-      flushUpdate();
+      // Cleanup dupes
+      sources = sources.filter((v, i, a) => a.findIndex(t => (t.uri === v.uri)) === i);
+       
+      setMessages(prev => {
+          const newHistory = [...prev];
+          const lastIdx = newHistory.findIndex(m => m.id === thinkingMsgId);
+          if (lastIdx !== -1) {
+             newHistory[lastIdx] = { ...newHistory[lastIdx], isTyping: false, sources: sources.length > 0 ? sources : undefined };
+          }
+          return newHistory;
+      });
 
     } catch (err) {
       console.error("Chat error", err);

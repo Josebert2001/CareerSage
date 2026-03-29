@@ -5,11 +5,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CareerSage - AI Career Counselor</title>
-    <!-- Preconnect to CDN origins for faster resource loading -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://esm.sh" />
-    <link rel="preconnect" href="https://cdn.tailwindcss.com" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -20,7 +15,7 @@
         overflow-x: hidden;
       }
       
-      /* Modern Animated Background - Glassmorphism Support */
+      /* Modern Animated Background - Warm Earthy Tones */
       .mesh-bg {
         position: fixed;
         top: 0;
@@ -29,25 +24,23 @@
         height: 100vh;
         z-index: -1;
         background: 
-          radial-gradient(at 20% 30%, hsla(160, 50%, 92%, 1) 0, transparent 50%), 
-          radial-gradient(at 80% 20%, hsla(140, 45%, 91%, 1) 0, transparent 50%), 
-          radial-gradient(at 50% 80%, hsla(170, 40%, 93%, 1) 0, transparent 50%);
+          radial-gradient(at 0% 0%, hsla(140, 30%, 94%, 1) 0, transparent 50%), 
+          radial-gradient(at 50% 0%, hsla(20, 40%, 95%, 1) 0, transparent 50%), 
+          radial-gradient(at 100% 0%, hsla(160, 25%, 93%, 1) 0, transparent 50%);
         background-size: 200% 200%;
-        animation: gradient-move 20s ease infinite;
+        animation: gradient-move 15s ease infinite;
       }
 
       .mesh-blob {
         position: fixed;
         filter: blur(80px);
         z-index: -1;
-        opacity: 0.3;
-        animation: blob-bounce 12s infinite ease-in-out;
-        will-change: transform;
-        contain: strict;
+        opacity: 0.5;
+        animation: blob-bounce 10s infinite ease-in-out;
       }
-      .blob-1 { top: -15%; left: -10%; width: 60vw; height: 60vw; background: #10b981; animation-delay: 0s; } /* Emerald */
-      .blob-2 { bottom: -20%; right: -15%; width: 55vw; height: 55vw; background: #14b8a6; animation-delay: 2s; } /* Teal */
-      .blob-3 { top: 50%; left: 50%; width: 45vw; height: 45vw; background: #0d9488; animation-delay: 4s; } /* Dark Teal */
+      .blob-1 { top: -10%; left: -10%; width: 50vw; height: 50vw; background: #ecfdf5; animation-delay: 0s; } /* Soft Green */
+      .blob-2 { bottom: -10%; right: -10%; width: 50vw; height: 50vw; background: #fff7ed; animation-delay: 2s; } /* Soft Terracotta/Orange */
+      .blob-3 { top: 40%; left: 40%; width: 40vw; height: 40vw; background: #fefce8; animation-delay: 4s; } /* Soft Yellow */
 
       @keyframes gradient-move {
         0% { background-position: 0% 50%; }
@@ -84,6 +77,7 @@
       }
       .animate-fadeIn {
         animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        will-change: transform, opacity;
       }
       
       @keyframes bounce-slow {
@@ -97,8 +91,8 @@
       /* Glassmorphism Utilities */
       .glass-panel {
         background: rgba(255, 255, 255, 0.7);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
         border: 1px solid rgba(255, 255, 255, 0.5);
       }
       
@@ -112,52 +106,6 @@
       .glass-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
-      }
-
-      /* Accessibility & Focus Improvements */
-      *:focus-visible {
-        outline: 2px solid #059669;
-        outline-offset: 2px;
-      }
-
-      /* Skip to main content link */
-      .skip-link {
-        position: absolute;
-        top: -40px;
-        left: 0;
-        background: #059669;
-        color: white;
-        padding: 8px 16px;
-        text-decoration: none;
-        z-index: 100;
-        border-radius: 0 0 4px 0;
-      }
-      .skip-link:focus {
-        top: 0;
-      }
-
-      /* Better button focus states */
-      button:focus-visible {
-        outline: 2px solid #059669;
-        outline-offset: 2px;
-      }
-
-      /* Disable pointer events during animations */
-      html.transitions-disabled * {
-        animation: none !important;
-        transition: none !important;
-      }
-
-      /* Reduced motion support */
-      @media (prefers-reduced-motion: reduce) {
-        *,
-        *::before,
-        *::after {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-          scroll-behavior: auto !important;
-        }
       }
     </style>
   <script type="importmap">
@@ -176,7 +124,6 @@
 </script>
 </head>
   <body>
-    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div class="mesh-bg"></div>
     <div class="mesh-blob blob-1"></div>
     <div class="mesh-blob blob-2"></div>

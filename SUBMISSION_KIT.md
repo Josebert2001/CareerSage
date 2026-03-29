@@ -1,7 +1,7 @@
 
 # 🏆 Hackathon Submission Kit
 
-Use the materials below to submit your project to the "DeepMind - Vibe Code with Gemini 3 Pro" Hackathon.
+Use the materials below to submit your project to the "Google DeepMind - Vibe Code with Gemini 3 Pro" Hackathon.
 
 ---
 
@@ -46,7 +46,7 @@ CareerSage demonstrates how Gemini 3's reasoning capabilities can be applied to 
 **[1:25 - 1:50] Feature 3: Voice Mode (Live API)**
 *   *Action:* Switch to Voice Mode. Speak: "I'm worried about my JAMB score."
 *   *Visual:* Show the visualizer reacting.
-*   *Voiceover:* "For true accessibility, we use the **Gemini Live API**. It offers low-latency, empathetic voice guidance that grounds responses in real-time web search."
+*   *Voiceover:* "For true accessibility, we use the **Gemini Live API**. It offers low-latency, empathetic voice guidance that grounds responses in real-time data using Google Search tools."
 
 **[1:50 - 2:00] Closing**
 *   *Visual:* Show the "Future Self" polaroid generating.
@@ -56,7 +56,7 @@ CareerSage demonstrates how Gemini 3's reasoning capabilities can be applied to 
 
 ## 3. How to Submit
 
-1.  **Deploy Code:** Copy your `index.tsx`, `App.tsx`, and other files into the **AI Studio Build** environment if you haven't already.
+1.  **Deploy Code:** Copy your `index.tsx`, `App.tsx`, and other files into the **Google AI Studio Build** environment if you haven't already.
 2.  **Record Video:** Use a screen recorder (like Loom or OBS) to follow the script above.
 3.  **Publish App:** In AI Studio, click "Share" -> "Publish App" to get your public link.
 4.  **Kaggle:** Go to the hackathon page, click "New Writeup", paste the text above, link your video and app.

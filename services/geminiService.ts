@@ -3,18 +3,6 @@ import { GoogleGenAI, Type, Schema, Chat, FunctionDeclaration, Tool } from "@goo
 import { ANALYSIS_PROMPT } from "../constants";
 import { CareerAdviceResponse, FileData, Pathway, FutureVision } from "../types";
 
-// Singleton AI client — avoids re-instantiation on every API call
-let _aiClient: GoogleGenAI | null = null;
-const getAI = (): GoogleGenAI => {
-  if (!_aiClient) {
-    _aiClient = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  }
-  return _aiClient;
-};
-
-// Exported alias for use in components that need direct SDK access (e.g. Live API)
-export const getAIClient = getAI;
-
 // Helper to remove markdown code blocks
 const cleanJson = (text: string): string => {
   return text.replace(/```json\n?|```/g, '').trim();
@@ -90,7 +78,7 @@ export const generateCareerAdvice = async (
   textInput: string,
   files: FileData[]
 ): Promise<CareerAdviceResponse> => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const modelName = "gemini-3-pro-preview"; 
 
   const analysisParts: any[] = [];
@@ -170,7 +158,7 @@ export const generateFutureVision = async (
   role: string, 
   userContext: string
 ): Promise<FutureVision> => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const prompt = `Generate a photorealistic image of a professional working as a ${role}. Context: ${userContext}`;
 
@@ -196,7 +184,7 @@ export const generateFutureVision = async (
 };
 
 export const generateSimulationImage = async (prompt: string): Promise<string> => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -213,7 +201,7 @@ export const generateSimulationImage = async (prompt: string): Promise<string> =
 };
 
 export const editSimulationImage = async (base64Image: string, instruction: string): Promise<string> => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -235,18 +223,18 @@ export const editSimulationImage = async (base64Image: string, instruction: stri
 };
 
 export const getChatSession = (): Chat => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
-      systemInstruction: `You are CareerSage's Agentic Assistant. Use web search proactively to verify facts and find current data.`,
+      systemInstruction: `You are CareerSage's Agentic Assistant. Use Google Search proactively.`,
       tools: [{ googleSearch: {} }]
     }
   });
 };
 
 export const createSimulationSession = (role: string, context: string): Chat => {
-  const ai = getAI();
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   const tools: Tool[] = [{
     functionDeclarations: [

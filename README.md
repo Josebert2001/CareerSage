@@ -3,7 +3,7 @@
 
 **Bridging the gap between dreams and reality for students in Africa and beyond.**
 
-CareerSage is a comprehensive AI career guidance system that provides culturally aware, realistic career paths using deep reasoning, multimodality, and real-time data grounding.
+CareerSage is a comprehensive AI career guidance system built on the **Google Gemini 3** ecosystem. It provides culturally aware, realistic career paths using deep reasoning, multimodality, and real-time data grounding.
 
 ---
 
@@ -24,11 +24,11 @@ Experience a "Day in the Life" of any profession.
 ### 3. Voice Mode (Live API)
 Talk naturally with an empathetic counselor.
 - **Model**: **`gemini-2.5-flash-native-audio-preview-12-2025`**.
-- **Features**: Interruption-friendly, low-latency raw PCM audio streaming with real-time web search grounding.
+- **Features**: Interruption-friendly, low-latency raw PCM audio streaming with Google Search grounding.
 
 ### 4. Agentic Research (Search Tool)
 Verify facts about scholarships, schools, and salaries.
-- **Model**: **`gemini-3-pro-preview`** with real-time web search integration.
+- **Model**: **`gemini-3-pro-preview`** with **`googleSearch`** integration.
 
 ---
 
@@ -55,4 +55,4 @@ CareerSage is specifically tuned to understand:
 - **NYSC**: The mandatory service year in Nigeria and how to plan around it.
 
 ---
-*Built for the Gemini Build Challenge.*
+*Built for the Google Gemini Build Challenge.*

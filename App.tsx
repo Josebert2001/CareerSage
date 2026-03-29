@@ -1,21 +1,17 @@
 
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState } from 'react';
 import { Compass, Sparkles, Mic, MessageSquare, MessageCircle, Gamepad2, History, Zap } from 'lucide-react';
 import { AppState, CareerAdviceResponse, FileData, UserProfile, Pathway, ChatMessage, SavedSession } from './types';
 import { generateCareerAdvice } from './services/geminiService';
 import { saveSession } from './services/storage';
 import InputForm from './components/InputForm';
+import ResultView from './components/ResultView';
 import LoadingScreen from './components/LoadingScreen';
-import WelcomeScreen from './components/WelcomeScreen';
+import VoiceSession from './components/VoiceSession';
+import ChatSession from './components/ChatSession';
+import SimulationSession from './components/SimulationSession';
 import HistoryModal from './components/HistoryModal';
-import TestimonialsDisplay from './components/TestimonialsDisplay';
-import TestimonialSubmission from './components/TestimonialSubmission';
-
-// Lazy-loaded heavy components — only fetched when the user activates that mode
-const ResultView = lazy(() => import('./components/ResultView'));
-const VoiceSession = lazy(() => import('./components/VoiceSession'));
-const ChatSession = lazy(() => import('./components/ChatSession'));
-const SimulationSession = lazy(() => import('./components/SimulationSession'));
+import WelcomeScreen from './components/WelcomeScreen';
 
 const App: React.FC = () => {
   // Initialize in WELCOME state
@@ -142,79 +138,78 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-800 bg-transparent">
       
-      {/* Sophisticated Top Navigation Bar */}
-      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${appState === AppState.WELCOME ? 'bg-transparent border-transparent' : 'bg-white/60 backdrop-blur-2xl border-b border-white/40 shadow-lg shadow-slate-200/10'}`} role="banner">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 md:h-20 flex items-center justify-between">
+      {/* Modern Top Navigation Bar */}
+      <header className={`sticky top-0 z-50 w-full transition-all duration-300 ${appState === AppState.WELCOME ? 'bg-transparent border-transparent pt-4' : 'bg-white/70 backdrop-blur-xl border-b border-white/50 shadow-sm'}`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-[72px] flex items-center justify-between">
           
-          {/* Brand / Logo - Refined */}
-          <div className="flex items-center gap-2.5 md:gap-3.5 cursor-pointer group select-none" onClick={resetApp}>
-            <div className="relative flex-shrink-0">
-                <div className="absolute inset-0 bg-emerald-500 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300 rounded-xl"></div>
-                <div className="bg-gradient-to-br from-emerald-600 to-teal-600 p-2.5 md:p-3 rounded-lg md:rounded-xl shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-500/30 relative z-10 group-hover:scale-110 transition-transform duration-300">
-                    <Compass className="w-4 h-4 md:w-5 md:h-5 text-white" />
+          {/* Brand / Logo */}
+          <div className="flex items-center gap-3 cursor-pointer group select-none" onClick={resetApp}>
+            <div className="relative">
+                <div className="absolute inset-0 bg-emerald-500 blur-sm opacity-20 group-hover:opacity-40 transition-opacity rounded-xl"></div>
+                <div className="bg-gradient-to-br from-emerald-600 to-teal-500 p-2 rounded-xl shadow-lg shadow-emerald-500/10 relative z-10 group-hover:scale-105 transition-transform duration-300">
+                    <Compass className="w-5 h-5 text-white" />
                 </div>
             </div>
-            <div className="flex flex-col justify-center">
-                <h1 className="text-base md:text-lg font-bold text-slate-900 tracking-tight leading-tight">
+            <div className="flex flex-col">
+                <h1 className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-emerald-900 to-teal-700 tracking-tight leading-none">
                     CareerSage
                 </h1>
                 {appState !== AppState.WELCOME && (
-                  <span className="text-[11px] md:text-xs text-slate-500 font-medium tracking-wide">Intelligent Guidance</span>
+                  <span className="text-[10px] text-slate-400 font-medium tracking-wide">AI Guidance System</span>
                 )}
             </div>
           </div>
           
-          {/* Center Navigation - Elegant Pills */}
+          {/* Center Navigation - Pill Design */}
           {appState !== AppState.WELCOME && (
-            <div className="flex-1 flex justify-center px-3 md:px-4">
-               <nav className="flex items-center gap-1 p-1 bg-white/50 backdrop-blur-lg rounded-full border border-white/40 shadow-md shadow-slate-200/10 overflow-x-auto no-scrollbar max-w-full" role="navigation" aria-label="Mode selection">
-
+            <div className="flex-1 flex justify-center px-4">
+               <nav className="flex items-center gap-1 p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-full border border-slate-200/60 shadow-inner overflow-x-auto no-scrollbar max-w-full">
                   
                   <button
                     onClick={() => switchMode('text')}
-                    className={`flex items-center gap-1.5 px-3.5 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                         mode === 'text' 
-                        ? 'bg-white/80 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                        ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-black/5' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-white/60'
                     }`}
                   >
-                    <MessageSquare className={`w-4 h-4 ${mode === 'text' ? 'fill-emerald-200' : ''}`} />
+                    <MessageSquare className={`w-4 h-4 ${mode === 'text' ? 'fill-emerald-100' : ''}`} />
                     <span className="hidden sm:inline">Advisor</span>
                   </button>
 
                   <button
                     onClick={() => switchMode('voice')}
-                    className={`flex items-center gap-1.5 px-3.5 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                         mode === 'voice' 
-                        ? 'bg-white/80 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                        ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-black/5' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-white/60'
                     }`}
                   >
-                    <Mic className={`w-4 h-4 ${mode === 'voice' ? 'fill-emerald-200' : ''}`} />
+                    <Mic className={`w-4 h-4 ${mode === 'voice' ? 'fill-emerald-100' : ''}`} />
                     <span className="hidden sm:inline">Voice</span>
                   </button>
 
                   <button
                     onClick={() => switchMode('chat')}
-                    className={`flex items-center gap-1.5 px-3.5 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                         mode === 'chat' 
-                        ? 'bg-white/80 text-emerald-700 shadow-sm ring-1 ring-emerald-500/20' 
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/40'
+                        ? 'bg-white text-emerald-800 shadow-sm ring-1 ring-black/5' 
+                        : 'text-slate-500 hover:text-slate-900 hover:bg-white/60'
                     }`}
                   >
-                    <MessageCircle className={`w-4 h-4 ${mode === 'chat' ? 'fill-emerald-200' : ''}`} />
+                    <MessageCircle className={`w-4 h-4 ${mode === 'chat' ? 'fill-emerald-100' : ''}`} />
                     <span className="hidden sm:inline">Chat</span>
                   </button>
 
                   <button
                     onClick={handleManualSimulationStart}
-                    className={`flex items-center gap-1.5 px-3.5 md:px-4 py-2 rounded-full text-xs md:text-sm font-medium transition-all duration-200 whitespace-nowrap ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                         mode === 'simulator' 
-                        ? 'bg-indigo-600/90 text-white shadow-md shadow-indigo-500/25' 
-                        : 'text-indigo-600 hover:bg-indigo-50/60'
+                        ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20' 
+                        : 'text-indigo-600 hover:bg-indigo-50'
                     }`}
                   >
-                    <Gamepad2 className={`w-4 h-4 ${mode === 'simulator' ? 'fill-indigo-300' : ''}`} />
+                    <Gamepad2 className={`w-4 h-4 ${mode === 'simulator' ? 'fill-indigo-400' : ''}`} />
                     <span className="hidden sm:inline">Sim</span>
                   </button>
 
@@ -224,23 +219,24 @@ const App: React.FC = () => {
 
           {/* Right Area - Utilities */}
           {appState !== AppState.WELCOME && (
-            <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3 justify-end flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 justify-end">
                {/* Tech Badge */}
-               <div className="hidden lg:flex items-center gap-1 px-2.5 py-1.5 bg-indigo-50/70 backdrop-blur-sm border border-indigo-100/50 rounded-full text-[10px] md:text-[11px] font-semibold text-indigo-700 tracking-tight shadow-sm hover:bg-indigo-50/90 transition-all">
-                  <Zap className="w-3 h-3 fill-indigo-400" />
-                  <span>Gemini 3</span>
+               <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-full text-[11px] font-bold text-indigo-700 tracking-tight shadow-sm">
+                  <Zap className="w-3.5 h-3.5 fill-indigo-400" />
+                  <span>Gemini 3 Pro</span>
                </div>
 
-               <div className="h-6 w-px bg-slate-200/50 hidden md:block"></div>
+               <div className="h-8 w-px bg-slate-200 hidden md:block"></div>
 
                <button 
                   onClick={() => setShowHistory(true)}
-                  className="group flex items-center gap-1.5 p-2 md:px-3 md:py-2 rounded-lg text-slate-500 hover:bg-white/50 hover:text-emerald-700 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                  className="group flex items-center gap-2 p-2 sm:px-3 sm:py-2 rounded-full text-slate-500 hover:bg-slate-100 hover:text-emerald-700 transition-all"
                   title="View History"
-                  aria-label="View conversation history"
                >
-                  <History className="w-4 h-4 md:w-5 md:h-5 group-hover:rotate-[-15deg] transition-transform duration-300" />
-                  <span className="hidden md:inline text-xs md:text-sm font-medium">History</span>
+                  <div className="relative">
+                    <History className="w-5 h-5 group-hover:rotate-[-45deg] transition-transform duration-300" />
+                  </div>
+                  <span className="hidden md:inline text-sm font-medium">History</span>
                </button>
             </div>
           )}
@@ -248,13 +244,13 @@ const App: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <main id="main-content" className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-8 relative" role="main">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-4 md:px-6 py-8 md:py-12 relative">
         
         {/* Welcome Screen Logic */}
         {appState === AppState.WELCOME ? (
             <WelcomeScreen onStart={() => setAppState(AppState.IDLE)} />
         ) : (
-            <Suspense fallback={<LoadingScreen />}>
+            <>
                 {mode === 'voice' && (
                 <VoiceSession 
                     onEndSession={() => switchMode('text')} 
@@ -306,20 +302,18 @@ const App: React.FC = () => {
                     {appState === AppState.ANALYZING && <LoadingScreen />}
 
                     {appState === AppState.ERROR && (
-                    <div className="max-w-md mx-auto text-center py-16 md:py-24 animate-fadeIn">
-                        <div className="glass-card rounded-3xl p-8 md:p-12">
-                          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-8">
-                            <Compass className="w-8 h-8 text-red-500" aria-hidden="true" />
-                          </div>
-                          <h3 className="text-2xl font-bold text-slate-900 mb-3">Analysis Failed</h3>
-                          <p className="text-slate-600 mb-8 text-sm md:text-base leading-relaxed">{errorMsg}</p>
-                          <button
-                            onClick={() => setAppState(AppState.IDLE)}
-                            className="px-8 py-3 bg-slate-900 text-white rounded-full font-bold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-700"
-                          >
-                            Try Again
-                          </button>
+                    <div className="max-w-md mx-auto text-center py-20 animate-fadeIn glass-card rounded-3xl p-8">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-6">
+                        <Compass className="w-8 h-8 text-red-500" />
                         </div>
+                        <h3 className="text-xl font-bold text-slate-900 mb-2">Analysis Failed</h3>
+                        <p className="text-slate-600 mb-6">{errorMsg}</p>
+                        <button
+                        onClick={() => setAppState(AppState.IDLE)}
+                        className="px-8 py-3 bg-slate-900 text-white rounded-xl font-semibold hover:bg-slate-800 transition-all shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+                        >
+                        Try Again
+                        </button>
                     </div>
                     )}
 
@@ -332,7 +326,7 @@ const App: React.FC = () => {
                     )}
                 </>
                 )}
-            </Suspense>
+            </>
         )}
       </main>
 
@@ -342,16 +336,8 @@ const App: React.FC = () => {
         onSelectSession={handleRestoreSession} 
       />
 
-      {/* Testimonials Section — visible on Welcome and Idle screens */}
-      {(appState === AppState.WELCOME || (appState === AppState.IDLE && mode === 'text')) && (
-        <section className="w-full max-w-5xl mx-auto px-4 md:px-6">
-          <TestimonialsDisplay />
-          <TestimonialSubmission />
-        </section>
-      )}
-
       {/* Footer */}
-      <footer className="py-6 mt-auto" role="contentinfo">
+      <footer className="py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs font-medium text-slate-400">
             Built by Gemini 3 Pro 
