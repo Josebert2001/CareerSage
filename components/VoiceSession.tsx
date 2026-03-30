@@ -40,7 +40,16 @@ const VoiceSession: React.FC<VoiceSessionProps> = ({ onEndSession, userProfile, 
   const startSession = async () => {
     try {
       setStatus('connecting');
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = process.env.API_KEY;
+      if (!apiKey || apiKey === "") {
+        console.error("Gemini API Key is missing for Voice Session.");
+        if (window.aistudio?.openSelectKey) {
+          await window.aistudio.openSelectKey();
+        }
+        setStatus('error');
+        return;
+      }
+      const ai = new GoogleGenAI({ apiKey });
 
       inputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       outputAudioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });

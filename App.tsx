@@ -52,10 +52,16 @@ const App: React.FC = () => {
       saveSession('advisor', data);
     } catch (err: any) {
       console.error(err);
-      let msg = "Something went wrong while connecting to CareerSage.";
-      if (err.message) msg += ` Details: ${err.message}`;
-      
-      setErrorMsg(msg);
+      if (err.message === "API_KEY_MISSING") {
+        if (window.aistudio?.openSelectKey) {
+          await window.aistudio.openSelectKey();
+        }
+        setErrorMsg("Gemini API Key is required. Please select a key and try again.");
+      } else {
+        let msg = "Something went wrong while connecting to CareerSage.";
+        if (err.message) msg += ` Details: ${err.message}`;
+        setErrorMsg(msg);
+      }
       setAppState(AppState.ERROR);
     }
   };

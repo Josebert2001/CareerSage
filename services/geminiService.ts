@@ -74,11 +74,20 @@ const pathwaySchema: Schema = {
   required: ["title", "fitReason", "requiredSkills", "educationOptions", "timeline", "challenges", "actionSteps", "marketReality", "realityCheck", "salaryRange", "demandScore", "growthScore"]
 };
 
+const getApiKey = () => {
+  const key = process.env.API_KEY;
+  if (!key || key === "") {
+    throw new Error("API_KEY_MISSING");
+  }
+  return key;
+};
+
 export const generateCareerAdvice = async (
   textInput: string,
   files: FileData[]
 ): Promise<CareerAdviceResponse> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   const modelName = "gemini-3-pro-preview"; 
 
   const analysisParts: any[] = [];
@@ -158,7 +167,8 @@ export const generateFutureVision = async (
   role: string, 
   userContext: string
 ): Promise<FutureVision> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const prompt = `Generate a photorealistic image of a professional working as a ${role}. Context: ${userContext}`;
 
@@ -184,7 +194,8 @@ export const generateFutureVision = async (
 };
 
 export const generateSimulationImage = async (prompt: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -201,7 +212,8 @@ export const generateSimulationImage = async (prompt: string): Promise<string> =
 };
 
 export const editSimulationImage = async (base64Image: string, instruction: string): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash-image',
@@ -223,7 +235,8 @@ export const editSimulationImage = async (base64Image: string, instruction: stri
 };
 
 export const getChatSession = (): Chat => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
   return ai.chats.create({
     model: 'gemini-3-pro-preview',
     config: {
@@ -234,7 +247,8 @@ export const getChatSession = (): Chat => {
 };
 
 export const createSimulationSession = (role: string, context: string): Chat => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey });
 
   const tools: Tool[] = [{
     functionDeclarations: [

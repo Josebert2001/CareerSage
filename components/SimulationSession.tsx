@@ -133,21 +133,38 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
     }
   };
 
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
+
   const initSession = async (role: string, context: string) => {
     try {
       const session = createSimulationSession(role, context);
       setChat(session);
+      setApiKeyMissing(false);
       setIsLoading(true);
       const response = await session.sendMessage({ message: "Start simulation. Provide a brief intro and generate the starting workspace image." });
       await processResponse(response, session);
       setIsLoading(false);
-    } catch (e) {
-      setMessages([{
-        id: 'error-init',
-        role: 'model',
-        text: "Simulator offline. Reconnect required."
-      }]);
+    } catch (e: any) {
+      if (e.message === "API_KEY_MISSING") {
+        setApiKeyMissing(true);
+      } else {
+        setMessages([{
+          id: 'error-init',
+          role: 'model',
+          text: "Simulator offline. Reconnect required."
+        }]);
+      }
       setIsLoading(false);
+    }
+  };
+
+  const handleConnectKey = async () => {
+    if (window.aistudio?.openSelectKey) {
+      await window.aistudio.openSelectKey();
+      // After selecting, we try to re-init if we have the data
+      if (!needsSetup && setupData.role) {
+        initSession(setupData.role, `User: ${setupData.name}`);
+      }
     }
   };
 
@@ -218,6 +235,25 @@ const SimulationSession: React.FC<SimulationSessionProps> = ({ initialRole, init
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] max-w-4xl mx-auto glass-card rounded-3xl shadow-2xl overflow-hidden animate-fadeIn relative">
+        {apiKeyMissing && (
+            <div className="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 text-center">
+                <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm animate-scaleIn">
+                    <div className="w-16 h-16 bg-indigo-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <Gamepad2 className="w-8 h-8 text-indigo-600" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">Gemini API Key Required</h3>
+                    <p className="text-slate-600 mb-8 text-sm leading-relaxed">
+                        To run the career simulation, you need to connect your Gemini API key.
+                    </p>
+                    <button 
+                        onClick={handleConnectKey}
+                        className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20"
+                    >
+                        Connect Gemini API
+                    </button>
+                </div>
+            </div>
+        )}
         <div className="p-4 bg-white/40 border-b flex items-center justify-between">
             <div className="flex items-center gap-4">
                 <Gamepad2 className="w-5 h-5 text-indigo-600" />
