@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Compass } from 'lucide-react';
+import { ArrowRight, GraduationCap, Briefcase, Building2 } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -38,7 +38,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
     <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 animate-fadeIn relative pt-12 md:pt-20">
       <div className="text-center max-w-4xl mx-auto mb-16">
         <div className="h-12 mb-8 overflow-hidden">
-          <p className="text-emerald-700 font-medium text-lg md:text-xl transition-all duration-500 transform translate-y-0">
+          <p key={hookIndex} className="text-emerald-700 font-medium text-lg md:text-xl animate-fadeIn">
             {hooks[hookIndex]}
           </p>
         </div>
@@ -65,8 +65,8 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
               <p className="text-sm font-bold text-emerald-900/60 uppercase tracking-widest">
                 Built by someone who grew up in this system.
               </p>
-              <p className="text-[10px] text-slate-400 max-w-xs text-center uppercase tracking-tighter">
-                A paid API key selection from <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" className="underline">Google Cloud</a> is required for high-fidelity features.
+              <p className="text-xs text-slate-500 max-w-sm text-center">
+                A paid API key from <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline hover:text-emerald-700">Google Cloud</a> is required for high-fidelity features.
               </p>
             </div>
         </div>
@@ -74,15 +74,15 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
 
       <div className="flex flex-wrap justify-center gap-4 w-full max-w-5xl opacity-80">
         <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <Compass className="w-4 h-4" />
+          <GraduationCap className="w-4 h-4" />
           JAMB & WAEC Guidance
         </div>
         <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <Compass className="w-4 h-4" />
+          <Briefcase className="w-4 h-4" />
           NYSC & Job Market
         </div>
         <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <Compass className="w-4 h-4" />
+          <Building2 className="w-4 h-4" />
           Poly vs Uni Reality
         </div>
       </div>

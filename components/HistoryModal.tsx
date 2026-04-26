@@ -12,12 +12,23 @@ interface HistoryModalProps {
 
 const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, onSelectSession }) => {
   const [sessions, setSessions] = useState<SavedSession[]>([]);
+  const [confirmingClear, setConfirmingClear] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
       setSessions(getHistory());
+      setConfirmingClear(false);
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isOpen, onClose]);
 
   const handleDelete = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -26,24 +37,36 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, onSelectSe
   };
 
   const handleClearAll = () => {
-    if (window.confirm("Are you sure you want to delete all history?")) {
-      clearHistory();
-      setSessions([]);
-    }
+    clearHistory();
+    setSessions([]);
+    setConfirmingClear(false);
   };
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]">
+    <div
+      className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="history-title"
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
           <div className="flex items-center gap-2 text-slate-800">
             <History className="w-5 h-5 text-emerald-600" />
-            <h3 className="font-bold text-lg">Your History</h3>
+            <h3 id="history-title" className="font-bold text-lg">Your History</h3>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+          <button
+            onClick={onClose}
+            aria-label="Close history"
+            className="p-2 hover:bg-slate-200 rounded-full transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+          >
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
@@ -57,7 +80,7 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, onSelectSe
             </div>
           ) : (
             sessions.map((session) => (
-              <div 
+              <div
                 key={session.id}
                 onClick={() => onSelectSession(session)}
                 className="group flex items-center justify-between p-4 rounded-xl border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/50 cursor-pointer transition-all shadow-sm"
@@ -76,10 +99,10 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, onSelectSe
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button 
+                  <button
                     onClick={(e) => handleDelete(e, session.id)}
-                    className="p-2 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
-                    title="Delete"
+                    aria-label={`Delete ${session.title}`}
+                    className="p-2 text-slate-300 hover:text-red-500 transition-colors md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none rounded-md"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -92,10 +115,31 @@ const HistoryModal: React.FC<HistoryModalProps> = ({ isOpen, onClose, onSelectSe
 
         {/* Footer */}
         {sessions.length > 0 && (
-          <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center">
-            <button onClick={handleClearAll} className="text-xs text-red-500 hover:text-red-700 font-medium px-2">
-              Clear All History
-            </button>
+          <div className="p-3 border-t border-slate-100 bg-slate-50 flex justify-between items-center gap-3">
+            {confirmingClear ? (
+              <div className="flex items-center gap-2 text-xs">
+                <span className="text-slate-600 font-medium">Delete all?</span>
+                <button
+                  onClick={handleClearAll}
+                  className="px-3 py-1 bg-red-500 text-white rounded-md font-semibold hover:bg-red-600 transition-colors focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none"
+                >
+                  Yes, clear
+                </button>
+                <button
+                  onClick={() => setConfirmingClear(false)}
+                  className="px-3 py-1 text-slate-500 hover:text-slate-700 font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setConfirmingClear(true)}
+                className="text-xs text-red-500 hover:text-red-700 font-medium px-2 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:outline-none rounded"
+              >
+                Clear All History
+              </button>
+            )}
             <span className="text-xs text-slate-400">Sessions are saved locally</span>
           </div>
         )}

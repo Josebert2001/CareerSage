@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Mic, MicOff, StopCircle } from 'lucide-react';
+import { Send, Mic, StopCircle, AlertCircle } from 'lucide-react';
 
 interface ConversationalInputProps {
   value: string;
@@ -20,6 +20,7 @@ const ConversationalInput: React.FC<ConversationalInputProps> = ({
 }) => {
   const [isListening, setIsListening] = useState(false);
   const [interimTranscript, setInterimTranscript] = useState('');
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<any>(null);
 
@@ -29,9 +30,19 @@ const ConversationalInput: React.FC<ConversationalInputProps> = ({
     }
   }, [autoFocus]);
 
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+        recognitionRef.current = null;
+      }
+    };
+  }, []);
+
   const handleVoiceToggle = () => {
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      alert("Voice input is not supported in this browser.");
+      setVoiceError("Voice input is not supported in this browser.");
+      setTimeout(() => setVoiceError(null), 4000);
       return;
     }
 
@@ -117,9 +128,10 @@ const ConversationalInput: React.FC<ConversationalInputProps> = ({
           {enableVoice && (
             <button
               onClick={handleVoiceToggle}
-              className={`p-2 rounded-xl transition-all ${
-                isListening 
-                  ? 'bg-red-50 text-red-600 animate-pulse' 
+              aria-label={isListening ? "Stop voice recording" : "Start voice input"}
+              className={`p-2 rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+                isListening
+                  ? 'bg-red-50 text-red-600 animate-pulse'
                   : 'text-slate-400 hover:text-emerald-600 hover:bg-emerald-50'
               }`}
               title={isListening ? "Stop recording" : "Use voice"}
@@ -127,13 +139,14 @@ const ConversationalInput: React.FC<ConversationalInputProps> = ({
               {isListening ? <StopCircle className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </button>
           )}
-          
+
           <button
             onClick={onSubmit}
             disabled={!value.trim()}
-            className={`p-2 rounded-xl transition-all ${
-              value.trim() 
-                ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700' 
+            aria-label="Send message"
+            className={`p-2 rounded-xl transition-all focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none ${
+              value.trim()
+                ? 'bg-emerald-600 text-white shadow-sm hover:bg-emerald-700'
                 : 'bg-slate-100 text-slate-300 cursor-not-allowed'
             }`}
           >
@@ -141,11 +154,18 @@ const ConversationalInput: React.FC<ConversationalInputProps> = ({
           </button>
         </div>
       </div>
-      
+
       {interimTranscript && (
         <div className="absolute -top-8 left-0 text-sm text-slate-500 italic animate-pulse flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
           {interimTranscript}...
+        </div>
+      )}
+
+      {voiceError && (
+        <div role="alert" className="absolute -bottom-12 left-0 right-0 flex items-center gap-2 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800 animate-fadeIn">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{voiceError}</span>
         </div>
       )}
     </div>

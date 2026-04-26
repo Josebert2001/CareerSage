@@ -21,7 +21,7 @@ const LoadingScreen: React.FC = () => {
   }, [tips.length]);
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 animate-fadeIn">
+    <div className="flex flex-col items-center justify-center py-20 animate-fadeIn" role="status" aria-live="polite">
       <div className="relative mb-10">
         <div className="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 rounded-full animate-pulse"></div>
         <Loader2 className="w-20 h-20 text-emerald-800 animate-spin relative z-10 stroke-[1.5px]" />
@@ -32,16 +32,6 @@ const LoadingScreen: React.FC = () => {
           {tips[tip]}
         </p>
       </div>
-      
-      <style>{`
-        @keyframes fadeSlideIn {
-          0% { opacity: 0; transform: translateY(15px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeSlideIn {
-          animation: fadeSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-      `}</style>
     </div>
   );
 };

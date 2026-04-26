@@ -289,18 +289,18 @@ const InputForm: React.FC<InputFormProps> = ({
                   );
                })}
              </div>
-             <div className="pl-12 flex justify-end">
-                <button onClick={handleNext} className="text-sm font-semibold text-slate-400 hover:text-emerald-600 underline decoration-slate-300 underline-offset-4 mr-4">
-                    Skip / None apply
-                </button>
-                {profile.constraints.length > 0 && (
-                     <button 
-                     onClick={handleNext} 
-                     className="px-6 py-2 rounded-full font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-md"
-                    >
-                     Continue
-                    </button>
+             <div className="pl-12 flex justify-end items-center gap-4">
+                {profile.constraints.length === 0 && (
+                  <button onClick={handleNext} className="text-sm font-semibold text-slate-400 hover:text-emerald-600 underline decoration-slate-300 underline-offset-4">
+                    None apply
+                  </button>
                 )}
+                <button
+                  onClick={handleNext}
+                  className="px-6 py-2 rounded-full font-bold bg-slate-900 text-white hover:bg-slate-800 shadow-md focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:outline-none"
+                >
+                  {profile.constraints.length > 0 ? 'Continue' : 'Skip'}
+                </button>
              </div>
           </div>
         );
@@ -411,37 +411,37 @@ const InputForm: React.FC<InputFormProps> = ({
       <div className="space-y-6 opacity-60 hover:opacity-100 transition-opacity duration-300 mb-6">
         {currentStep > 0 && profile.name && (
             <>
-                {renderBubble("What should I call you?", true)}
+                {renderBubble("Hey. Before anything else — what do I call you?", true)}
                 {renderBubble(profile.name, false)}
             </>
         )}
         {currentStep > 1 && profile.situation && (
              <>
-                {renderBubble("Current situation?", true)}
+                {renderBubble(<>Okay {profile.name}. Where are you right now?</>, true)}
                 {renderBubble(profile.situation, false)}
              </>
         )}
         {currentStep > 2 && profile.interests.length > 0 && (
              <>
-                {renderBubble("Interests?", true)}
+                {renderBubble("What do you actually enjoy?", true)}
                 {renderBubble(profile.interests.join(', '), false)}
              </>
         )}
         {currentStep > 3 && profile.constraints.length > 0 && (
              <>
-                {renderBubble("Constraints?", true)}
+                {renderBubble("Real talk — what's the situation at home?", true)}
                 {renderBubble(profile.constraints.join(', '), false)}
              </>
         )}
         {currentStep > 4 && profile.dreams && (
              <>
-                {renderBubble("Career dreams?", true)}
+                {renderBubble("If money and family weren't a problem — what would you be doing in 5 years?", true)}
                 {renderBubble(profile.dreams, false)}
              </>
         )}
          {currentStep > 5 && profile.concerns && (
              <>
-                {renderBubble("Concerns?", true)}
+                {renderBubble("What's the fear that keeps you up at night?", true)}
                 {renderBubble(profile.concerns, false)}
              </>
         )}
