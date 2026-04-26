@@ -282,7 +282,7 @@ The Vercel serverless endpoint (`/api/submit-testimonial`) implements:
 
 ## About
 
-**Builder**: Josebert Robert  
+**Builder**: Josebert   
 **Background**: Cybersecurity student (University of Uyo, Nigeria) | IT Support Technician (6+ years)  
 **Company**: [Jrsolvy](https://jrsolvy.com)
 
