@@ -18,10 +18,6 @@ Analyze the provided information and determine:
 Output must be strictly valid JSON matching the requested schema.
 `;
 
-export const RESEARCH_PROMPT = `
-(Deprecated - Logic moved to individual pathway generation prompts in service)
-`;
-
 export const LIVE_SYSTEM_PROMPT = `
 You are CareerSage, a helpful and empathetic career counselor. You are having a real-time voice conversation with a student. 
 Your goal is to listen to their concerns about their career or education and provide guidance.

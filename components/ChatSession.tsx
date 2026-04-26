@@ -67,7 +67,9 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
         const session = getChatSession();
         setChat(session);
         setApiKeyMissing(false);
-      } catch (e) {}
+      } catch (e) {
+        console.error("Failed to re-init chat after key selection", e);
+      }
     }
   };
 

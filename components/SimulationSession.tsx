@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Chat, GenerateContentResponse } from '@google/genai';
 import { createSimulationSession, generateSimulationImage, editSimulationImage } from '../services/geminiService';
 import { ChatMessage } from '../types';
-import { User, Gamepad2, AlertCircle, XCircle, Play, ChevronRight, Briefcase, Bot, Image as ImageIcon, Wand2, Loader2, RotateCcw } from 'lucide-react';
+import { User, Gamepad2, XCircle, Bot, RotateCcw } from 'lucide-react';
 import ConversationalInput from './ConversationalInput';
 
 interface SimulationSessionProps {
