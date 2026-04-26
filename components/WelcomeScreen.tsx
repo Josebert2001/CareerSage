@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, GraduationCap, Briefcase, Building2 } from 'lucide-react';
+import { ArrowRight, GraduationCap, Briefcase, Building2, Sparkles } from 'lucide-react';
 
 interface WelcomeScreenProps {
   onStart: () => void;
@@ -8,18 +8,24 @@ interface WelcomeScreenProps {
 
 const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   const [hookIndex, setHookIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
   const hooks = [
     "You passed WAEC. Now what?",
-    "Your parents want medicine. You want design. Who do you listen to?",
+    "Your parents want medicine. You want design.",
     "NYSC is over. 200 CVs sent. Nothing back.",
-    "You got into poly. Everyone says it's not the same as uni. Is that true?",
+    "You got into poly. Is it the same as uni?",
     "You want to study abroad but don't know where to start.",
-    "Everyone around you seems to have a plan. You don't. That's okay."
+    "Everyone has a plan. You don't. That's okay."
   ];
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setHookIndex((prev) => (prev + 1) % hooks.length);
+      setVisible(false);
+      setTimeout(() => {
+        setHookIndex((prev) => (prev + 1) % hooks.length);
+        setVisible(true);
+      }, 350);
     }, 4000);
     return () => clearInterval(interval);
   }, []);
@@ -27,64 +33,99 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
   const handleStart = async () => {
     if (window.aistudio) {
       const hasKey = await window.aistudio.hasSelectedApiKey();
-      if (!hasKey) {
-        await window.aistudio.openSelectKey();
-      }
+      if (!hasKey) await window.aistudio.openSelectKey();
     }
     onStart();
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[85vh] px-4 animate-fadeIn relative pt-12 md:pt-20">
-      <div className="text-center max-w-4xl mx-auto mb-16">
-        <div className="h-12 mb-8 overflow-hidden">
-          <p key={hookIndex} className="text-emerald-700 font-medium text-lg md:text-xl animate-fadeIn">
-            {hooks[hookIndex]}
-          </p>
+    <div className="flex flex-col items-center justify-center min-h-[88vh] px-4 animate-fadeIn relative">
+
+      {/* Subtle dot texture */}
+      <div className="absolute inset-0 dot-pattern opacity-40 pointer-events-none" />
+
+      {/* Hero */}
+      <div className="text-center max-w-4xl mx-auto mb-16 relative z-10">
+
+        {/* Rotating hook */}
+        <div className="h-8 mb-10 flex items-center justify-center">
+          <div
+            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full border border-emerald-200 bg-white/70 backdrop-blur-sm shadow-sm"
+            style={{ transition: 'opacity 0.3s ease', opacity: visible ? 1 : 0 }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
+            <p className="text-emerald-800 font-semibold text-sm md:text-base">
+              {hooks[hookIndex]}
+            </p>
+          </div>
         </div>
-        
-        <h1 className="text-5xl md:text-8xl font-black text-slate-900 mb-8 tracking-tight leading-[0.95]">
-          Someone should have told you <br className="hidden md:block"/>
-          <span className="text-emerald-800">this years ago.</span>
+
+        {/* Headline */}
+        <h1 className="text-[clamp(2.6rem,8vw,6rem)] font-black text-slate-900 mb-6 tracking-tight leading-[0.92]">
+          Someone should have
+          <br />
+          told you this{' '}
+          <span className="brand-text-gradient">years ago.</span>
         </h1>
-        
-        <p className="text-xl md:text-2xl text-slate-600 leading-relaxed max-w-2xl mx-auto mb-12 font-medium">
-          CareerSage is the career counselor most Nigerian students never had access to.
+
+        <p className="text-lg md:text-xl text-slate-500 leading-relaxed max-w-xl mx-auto mb-12 font-medium">
+          CareerSage is the career counselor most Nigerian students
+          never had access to.
         </p>
 
-        <div className="flex flex-col items-center gap-6">
-            <button 
-                onClick={handleStart}
-                className="group relative inline-flex items-center gap-4 px-10 py-5 bg-emerald-900 text-white rounded-full font-bold text-xl shadow-2xl hover:bg-emerald-800 transition-all transform hover:-translate-y-1 active:scale-95"
-            >
-                <span>Tell me your situation</span>
-                <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-            </button>
-            
-            <div className="flex flex-col items-center gap-2">
-              <p className="text-sm font-bold text-emerald-900/60 uppercase tracking-widest">
-                Built by someone who grew up in this system.
-              </p>
-              <p className="text-xs text-slate-500 max-w-sm text-center">
-                A paid API key from <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noreferrer" className="underline hover:text-emerald-700">Google Cloud</a> is required for high-fidelity features.
-              </p>
-            </div>
+        {/* CTA */}
+        <div className="flex flex-col items-center gap-5">
+          <button
+            onClick={handleStart}
+            className="group relative inline-flex items-center gap-3 px-10 py-4 rounded-full font-bold text-lg text-white shadow-xl shadow-emerald-900/25 hover:shadow-2xl hover:shadow-emerald-900/30 transition-all duration-300 hover:-translate-y-1 active:scale-95 overflow-hidden"
+            style={{ background: 'linear-gradient(135deg, #065f46 0%, #059669 100%)' }}
+          >
+            {/* Shimmer overlay */}
+            <span className="absolute inset-0 animate-shimmer pointer-events-none" />
+            <span className="relative flex items-center gap-3">
+              <Sparkles className="w-5 h-5 text-emerald-300" />
+              Tell me your situation
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </button>
+
+          <div className="flex flex-col items-center gap-1.5">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
+              Built by someone who grew up in this system.
+            </p>
+            <p className="text-xs text-slate-400 max-w-xs text-center">
+              A paid{' '}
+              <a
+                href="https://ai.google.dev/gemini-api/docs/billing"
+                target="_blank"
+                rel="noreferrer"
+                className="underline decoration-slate-300 underline-offset-2 hover:text-emerald-700 hover:decoration-emerald-400 transition-colors"
+              >
+                Google API key
+              </a>{' '}
+              is required for full analysis.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-4 w-full max-w-5xl opacity-80">
-        <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <GraduationCap className="w-4 h-4" />
-          JAMB & WAEC Guidance
-        </div>
-        <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <Briefcase className="w-4 h-4" />
-          NYSC & Job Market
-        </div>
-        <div className="px-6 py-3 rounded-full bg-white/50 border border-emerald-100 text-emerald-800 text-sm font-semibold flex items-center gap-2">
-          <Building2 className="w-4 h-4" />
-          Poly vs Uni Reality
-        </div>
+      {/* Feature pills */}
+      <div className="flex flex-wrap justify-center gap-3 w-full max-w-3xl relative z-10">
+        {[
+          { icon: GraduationCap, label: 'JAMB & WAEC Guidance', color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+          { icon: Briefcase,     label: 'NYSC & Job Market',    color: 'text-amber-700',   bg: 'bg-amber-50',   border: 'border-amber-100' },
+          { icon: Building2,     label: 'Poly vs Uni Reality',  color: 'text-slate-700',   bg: 'bg-slate-50',   border: 'border-slate-200' },
+        ].map(({ icon: Icon, label, color, bg, border }) => (
+          <div
+            key={label}
+            className={`flex items-center gap-2.5 px-5 py-2.5 rounded-full ${bg} border ${border} shadow-sm`}
+          >
+            <div className={`w-7 h-7 rounded-full flex items-center justify-center ${bg} border ${border}`}>
+              <Icon className={`w-3.5 h-3.5 ${color}`} />
+            </div>
+            <span className={`text-sm font-semibold ${color}`}>{label}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
