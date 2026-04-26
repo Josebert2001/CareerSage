@@ -1,138 +1,194 @@
 # CareerSage — AI Career Counselor for African Students
 
-> **Bridging the gap between dreams and reality for Nigerian and African students who never had access to a real career counselor.**
+> An intelligent career guidance platform bridging the gap between educational choices and professional reality for Nigerian and African students.
 
-🔗 **Live App**: [career-sage-beno.vercel.app](https://career-sage-beno.vercel.app)  
-📹 **Demo Video**: [Watch on YouTube](https://youtu.be/9agolZ_iPmU?si=8zuE99g20yRAp658)  
-🏆 **Built for**: Octoverse Hackathon 2026
-
----
-
-## The Problem
-
-Across Nigeria and Africa, most students make one of the most important decisions of their lives — choosing a career — with almost no support. Generic quizzes don't account for ASUU strikes, NYSC obligations, power outages, or the financial pressure of supporting a family. Career counselors are rare, expensive, or simply unavailable at public universities.
-
-CareerSage fixes that.
+**Live Application**: [career-sage-beno.vercel.app](https://career-sage-beno.vercel.app)  
+**Demo Video**: [YouTube](https://youtu.be/9agolZ_iPmU?si=8zuE99g20yRAp658)  
+**Submission**: Octoverse Hackathon 2026
 
 ---
 
-## What It Does
+## Table of Contents
 
-CareerSage is a multimodal AI career counseling system that understands the African student experience. It generates two personalized career roadmaps based on your real constraints — not a perfect life scenario.
-
-### Features
-
-**Smart Advisor**
-Collects your situation through a conversational 7-step intake (name, current status, interests, constraints, dreams, fears, and documents). Generates two distinct career pathways:
-- **Practical Pathway** (6–18 months): Quick wins and immediate stability
-- **Growth Pathway** (3–5 years): Long-term vision and aspirational success
-
-Each pathway includes salary range charts, market demand meters, action steps, education options, and realistic challenges.
-
-**Voice Counseling**
-Real-time voice conversation powered by the Gemini Live API with raw PCM audio streaming. Supports interruption, low latency, and real-time web search grounding for live data like JAMB dates and scholarship deadlines.
-
-**Career Simulator**
-Roleplay a "day in the life" of any career. AI generates narrative scenarios with function-calling image generation. Users can ask the AI to edit the scene in real time (e.g., "change the weather," "show a different office").
-
-**Agentic Research Chat**
-Ask questions about scholarships, tuition fees, job trends, and salaries. The agent uses live web search to verify facts and cite sources.
-
-**Local Save System**
-All sessions and roadmaps are saved to `localStorage` — no backend database, no accounts required.
-
-**Testimonial System**
-Users can submit testimonials via a Vercel serverless function that writes to a GitHub-hosted JSON file via the Octokit API. Includes rate limiting, input validation, and sanitization.
+1. [Problem Statement](#problem-statement)
+2. [Solution Overview](#solution-overview)
+3. [Core Features](#core-features)
+4. [Technology Stack](#technology-stack)
+5. [System Architecture](#system-architecture)
+6. [Cultural Context](#cultural-context)
+7. [Development Guide](#development-guide)
+8. [Security & Compliance](#security--compliance)
+9. [Roadmap](#roadmap)
 
 ---
 
-## Tech Stack
+## Problem Statement
 
-| Layer | Technology |
+Career selection is one of the most consequential decisions African students face, yet most make this choice with minimal professional guidance. Traditional career counseling services are:
+
+- **Geographically unavailable** — concentrated in private institutions in major cities
+- **Financially inaccessible** — prohibitive costs for most families
+- **Culturally misaligned** — generic frameworks ignore local realities (ASUU strikes, NYSC obligations, power infrastructure, economic constraints)
+- **Academically inflexible** — no guidance accounting for polytechnic vs. university tradeoffs
+
+CareerSage provides on-demand, culturally aware career counseling at scale.
+
+---
+
+## Solution Overview
+
+CareerSage is a multimodal AI counseling system that generates personalized career roadmaps based on a student's actual constraints, interests, and aspirations — not idealized scenarios.
+
+### Core Workflow
+
+1. **7-step conversational intake** collects student profile (situation, interests, constraints, dreams, concerns, documents)
+2. **Dual-pathway analysis** generates:
+   - **Practical Pathway**: 6–18 month plan for immediate stability
+   - **Growth Pathway**: 3–5 year vision for aspirational success
+3. **Interactive results** with salary projections, market demand analysis, action steps, and career simulation
+
+---
+
+## Core Features
+
+### Advisor Mode
+Conversational intake form followed by structured career analysis. Each pathway includes:
+- Monthly salary range projections (entry to senior levels)
+- Market demand scoring (0–100 scale)
+- Required technical and soft skills
+- Education/certification options with timelines
+- Actionable weekly steps (with local persistence)
+- Risk assessment and realistic challenges
+
+### Voice Counseling
+Real-time conversational guidance via Gemini Live API with:
+- Low-latency PCM audio streaming
+- Interruption support
+- Live web search grounding for current JAMB dates, scholarship deadlines, and job market data
+
+### Career Simulator
+Interactive roleplay scenarios ("day in the life") with:
+- AI-generated narrative immersion
+- Real-time scene editing (weather, location, tasks)
+- Function-calling image generation for visual context
+
+### Research Chat
+Context-aware question answering with:
+- Live web search for scholarships, tuition fees, job trends
+- Source citation for fact verification
+- Persistent conversation history
+
+### Local Session Management
+- Client-side storage via localStorage
+- No backend authentication required
+- Exportable session history
+
+---
+
+## Technology Stack
+
+| Component | Technology |
 |---|---|
-| Frontend | React 18, TypeScript, Tailwind CSS |
-| AI — Text & Reasoning | Gemini 3.1 Pro Preview (`gemini-3-pro-preview`) |
-| AI — Image Generation | Gemini 3 Pro Preview image generation (`gemini-3-pro-image-preview`) |
-| AI — Voice | Gemini 2.5 Flash Live API — `gemini-2.5-flash-native-audio-preview-12-2025` |
-| AI — Research Agent | Gemini 3 Flash Preview with Google Search grounding |
-| AI — Simulation | Gemini 2.5 Flash image (`gemini-2.5-flash-image`) for scene editing |
-| Data Visualization | Recharts |
-| Icons | Lucide React |
-| Deployment | Vercel (frontend + serverless API) |
-| CI/CD | GitHub Actions |
-| Testimonial Storage | GitHub API via Octokit |
+| **Frontend Framework** | React 18 + TypeScript |
+| **Styling** | Tailwind CSS (CDN) |
+| **Build Tool** | Vite 5 |
+| **Text & Reasoning** | Gemini 3.1 Pro Preview |
+| **Image Generation** | Gemini 3 Pro Preview |
+| **Voice/Audio** | Gemini 2.5 Flash Live API |
+| **Search Agent** | Gemini 3 Flash with Google Search |
+| **Data Visualization** | Recharts |
+| **Icons** | Lucide React |
+| **Hosting** | Vercel (frontend + serverless) |
+| **CI/CD** | GitHub Actions |
+| **Testimonials** | GitHub API (Octokit) |
 
 ---
 
-## Architecture
+## System Architecture
+
+### Data Flow
 
 ```
-User Input (Text / Voice / File Upload)
-        │
-        ▼
-┌─────────────────────────────────────┐
-│          Intake Form (7 Steps)       │
-│  Name → Situation → Interests →     │
-│  Constraints → Dreams → Fears → Docs│
-└────────────────┬────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│        Strategy Engine              │
-│   Gemini 3.1 Pro Preview            │
-│   → Student Profile Analysis        │
-│   → Pathway Title Generation        │
-└──────────┬──────────────────────────┘
-           │
-     ┌─────┴─────┐
-     ▼           ▼
-Practical    Growth
-Pathway      Pathway
-(parallel    (parallel
- generation)  generation)
-     │           │
-     └─────┬─────┘
+User Input (Text / Voice / Documents)
            │
            ▼
-┌─────────────────────────────────────┐
-│        Result View                  │
-│  Reflection → Salary Charts →       │
-│  Action Steps → Simulator Launch    │
-└─────────────────────────────────────┘
+    ┌──────────────┐
+    │ Intake Form  │
+    │  (7 Steps)   │
+    └──────┬───────┘
+           │
+           ▼
+    ┌──────────────────────┐
+    │ Analysis Pipeline    │
+    │ Gemini 3.1 Pro       │
+    └──────┬───────────────┘
+           │
+      ┌────┴────┐
+      ▼         ▼
+   Practical  Growth
+   Pathway    Pathway
+   (parallel processing)
+      │         │
+      └────┬────┘
+           │
+           ▼
+    ┌──────────────────┐
+    │  Result View     │
+    │ (Charts, Steps,  │
+    │  Simulator)      │
+    └──────────────────┘
 ```
 
-### Multi-Agent Workflow
+### Processing Pipeline
 
-The app uses a 3-stage pipeline:
+**Stage 1: Profile Analysis**
+- Structured JSON analysis of student profile
+- Generation of two candidate career titles
 
-1. **Analysis Stage**: A structured JSON call analyzes the student's profile and determines two career titles.
-2. **Pathway Generation Stage**: Two parallel calls expand each title into a full pathway with skills, timeline, salary data, and action steps.
-3. **Research/Voice Stage**: Separate agents handle live search and voice independently.
+**Stage 2: Parallel Pathway Expansion**
+- Simultaneous processing of practical and growth pathways
+- Full details: skills, timelines, salary data, education options, action steps
 
-This modular approach keeps the UI responsive while heavy AI processing happens in parallel.
+**Stage 3: Auxiliary Services**
+- Voice conversations (independent agent)
+- Web search & research (independent agent)
+- Image generation for simulation scenes
 
----
-
-## Africa-Specific Context
-
-CareerSage is specifically tuned to understand:
-
-- **Education systems**: JAMB, WAEC, NECO, and the HND vs BSc dichotomy between polytechnics and universities
-- **Economic realities**: Power instability, internet costs, and the need for remote income streams
-- **NYSC**: Nigeria's mandatory national service year and how to plan a career around it
-- **ASUU strikes**: The reality of extended university closures at public institutions
-- **Financial constraints**: Advice that works when "money is tight right now" is a real option, not an edge case
+This modular approach maintains UI responsiveness while leveraging parallel AI processing.
 
 ---
 
-## Local Development
+## Cultural Context
+
+CareerSage is specifically calibrated for the West African education and employment landscape:
+
+### Education Systems
+- **JAMB/WAEC**: Understanding exam-based university admission
+- **Polytechnic vs. University**: Addressing HND vs. BSc career implications
+- **NECO**: Recognition of alternative certification pathways
+
+### Economic & Social Realities
+- **Financial constraints**: Acknowledges "money is tight" as a legitimate constraint
+- **Family pressure**: Addresses tension between parental expectations and student aspirations
+- **NYSC obligations**: Factors in Nigeria's mandatory national service year
+- **Work-study tradeoffs**: Realistic guidance for part-time income needs
+- **Infrastructure challenges**: Accounts for power instability and internet costs
+
+### Labor Market Context
+- **ASUU strikes**: Recognition of extended university closures
+- **Remote income streams**: Emphasis on distributed work opportunities
+- **Regional variation**: Salary and opportunity differences across Nigeria
+
+---
+
+## Development Guide
 
 ### Prerequisites
 
-- Node.js 18+
-- A Google AI Studio API key ([get one here](https://aistudio.google.com))
+- Node.js 18 or later
+- Google AI Studio API key ([obtain here](https://aistudio.google.com))
 
-### Setup
+### Local Setup
 
 ```bash
 git clone https://github.com/Josebert2001/CareerSage.git
@@ -140,61 +196,100 @@ cd CareerSage
 npm install
 ```
 
-Create a `.env` file:
+Create `.env` (development):
 
 ```env
-VITE_API_KEY=your_google_ai_api_key_here
+VITE_API_KEY=your_google_ai_studio_key
 ```
+
+Run development server:
 
 ```bash
 npm run dev
 ```
 
+Open [http://localhost:5173](http://localhost:5173)
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+Output in `dist/`
+
 ### Environment Variables (Production)
 
-| Variable | Description |
-|---|---|
-| `VITE_API_KEY` | Google AI Studio API key |
-| `GITHUB_TOKEN` | Personal access token for testimonial writes |
-| `GITHUB_OWNER` | GitHub username (default: Josebert2001) |
-| `GITHUB_REPO` | Repo name (default: CareerSage) |
-| `FRONTEND_URL` | Production frontend URL for CORS |
+| Variable | Purpose | Example |
+|---|---|---|
+| `VITE_API_KEY` | Google AI Studio key | `AIza...` |
+| `GITHUB_TOKEN` | Testimonial endpoint auth | `ghp_...` |
+| `GITHUB_OWNER` | Testimonial repo owner | `Josebert2001` |
+| `GITHUB_REPO` | Testimonial repo name | `CareerSage` |
+| `FRONTEND_URL` | CORS whitelisting | `https://career-sage-beno.vercel.app` |
 
-### CI/CD
+### Continuous Integration
 
-GitHub Actions runs on every push to `main`:
-1. TypeScript type check (`tsc --noEmit`)
-2. Production build
-3. Automatic deploy to Vercel
+GitHub Actions on every push to `main`:
 
----
-
-## Security Notes
-
-The Vercel serverless API (`/api/submit-testimonial`) includes:
-- Rate limiting (5 requests per minute per IP, in-memory)
-- Input validation and sanitization (SQL injection, XSS, spam pattern detection)
-- CORS whitelisting
-- Security headers (X-Content-Type-Options, X-Frame-Options, HSTS, etc.)
+```
+TypeScript type check → Build → Deploy to Vercel
+```
 
 ---
 
-## What's Next
+## Security & Compliance
 
-- Scholarship finder with deadline filters
-- Mentorship marketplace connecting students with working professionals
-- Local language support (Yoruba, Igbo, Hausa, Ibibio)
-- Mobile app version
+### Testimonial Submission API
+
+The Vercel serverless endpoint (`/api/submit-testimonial`) implements:
+
+- **Rate limiting**: 5 requests per minute per IP address (in-memory store)
+- **Input validation**: Checks for SQL injection, XSS, and spam patterns
+- **Sanitization**: Removes malicious scripts and encoding attacks
+- **CORS enforcement**: Whitelisted domains only
+- **Security headers**: 
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `Strict-Transport-Security: max-age=31536000`
+
+### Data Handling
+
+- All session data stored in browser localStorage — no backend database
+- No user accounts or authentication required
+- No personal data sent to third parties (except Gemini API for analysis)
+- Testimonials anonymized before publication
+
+---
+
+## Roadmap
+
+### Short Term (Q2 2026)
+- Scholarship database with deadline filters and application status tracking
+- Enhanced voice modality with emotion detection
 - Offline-first mode for low-connectivity environments
 
+### Medium Term (Q3-Q4 2026)
+- Mentorship marketplace (students ↔ working professionals)
+- Local language support (Yoruba, Igbo, Hausa, Ibibio)
+- Mobile app (iOS + Android)
+
+### Long Term
+- Employer integration for direct job placement
+- Skill assessment and certification recommendations
+- Longitudinal tracking (alumni outcomes)
+
 ---
 
-## About the Builder
+## About
 
-Built by **Josebert Robert** — Cybersecurity student at the University of Uyo, Nigeria. Founder of [Jrsolvy](https://jrsolvy.com). IT Support Technician with 6+ years of hands-on experience.
+**Builder**: Josebert Robert  
+**Background**: Cybersecurity student (University of Uyo, Nigeria) | IT Support Technician (6+ years)  
+**Company**: [Jrsolvy](https://jrsolvy.com)
 
-This project was built because the career guidance gap in Nigeria is real — and I've lived it.
+This project was created to address a real gap in career guidance for Nigerian students — a challenge I have personally navigated.
 
 ---
 
-*Submitted to the Octoverse Hackathon 2026.*
+**License**: MIT  
+**Submission**: Octoverse Hackathon 2026
