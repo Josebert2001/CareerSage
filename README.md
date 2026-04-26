@@ -3,8 +3,7 @@
 > An intelligent career guidance platform bridging the gap between educational choices and professional reality for Nigerian and African students.
 
 **Live Application**: [career-sage-beno.vercel.app](https://career-sage-beno.vercel.app)  
-**Demo Video**: [YouTube](https://youtu.be/9agolZ_iPmU?si=8zuE99g20yRAp658)  
-**Submission**: Octoverse Hackathon 2026
+**Demo Video**: [YouTube](https://youtu.be/9agolZ_iPmU?si=8zuE99g20yRAp658)
 
 ---
 
@@ -291,5 +290,4 @@ This project was created to address a real gap in career guidance for Nigerian s
 
 ---
 
-**License**: MIT  
-**Submission**: Octoverse Hackathon 2026
+**License**: MIT
