@@ -93,18 +93,6 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onStart }) => {
             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
               Built by someone who grew up in this system.
             </p>
-            <p className="text-xs text-slate-400 max-w-xs text-center">
-              A paid{' '}
-              <a
-                href="https://ai.google.dev/gemini-api/docs/billing"
-                target="_blank"
-                rel="noreferrer"
-                className="underline decoration-slate-300 underline-offset-2 hover:text-emerald-700 hover:decoration-emerald-400 transition-colors"
-              >
-                Google API key
-              </a>{' '}
-              is required for full analysis.
-            </p>
           </div>
         </div>
       </div>

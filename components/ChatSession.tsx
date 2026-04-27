@@ -209,25 +209,6 @@ const ChatSession: React.FC<ChatSessionProps> = ({ initialMessages }) => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-140px)] max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-fadeIn relative">
-      {apiKeyMissing && (
-        <div className="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-6 text-center">
-          <div className="bg-white p-8 rounded-3xl shadow-2xl max-w-sm animate-scaleIn">
-            <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Sparkles className="w-8 h-8 text-amber-500" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">Gemini API Key Required</h3>
-            <p className="text-slate-600 mb-8 text-sm leading-relaxed">
-              To use the Agentic Career Researcher, you need to connect your Gemini API key.
-            </p>
-            <button 
-              onClick={handleConnectKey}
-              className="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20"
-            >
-              Connect Gemini API
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Agent Header */}
       <div className="p-4 border-b border-slate-100 bg-slate-900 text-white flex items-center justify-between">

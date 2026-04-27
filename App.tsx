@@ -44,7 +44,7 @@ const App: React.FC = () => {
       console.error(err);
       if (err.message === "API_KEY_MISSING") {
         if (window.aistudio?.openSelectKey) await window.aistudio.openSelectKey();
-        setErrorMsg("Gemini API Key is required. Please select a key and try again.");
+        setErrorMsg("Unable to connect. Please check your configuration and try again.");
       } else {
         let msg = "Something went wrong while connecting to CareerSage.";
         if (err.message) msg += ` Details: ${err.message}`;
@@ -185,7 +185,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-2 shrink-0">
               <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 border border-emerald-100 rounded-full text-[11px] font-bold text-emerald-700 tracking-tight">
                 <Zap className="w-3 h-3 fill-emerald-500 text-emerald-500" />
-                <span>Gemini 2.5 Pro</span>
+                <span>AI-Powered</span>
               </div>
 
               <div className="h-7 w-px bg-slate-200 hidden md:block" />
@@ -244,7 +244,7 @@ const App: React.FC = () => {
                         <span className="brand-text-gradient">Your Story</span>
                       </h2>
                       <p className="text-slate-500 text-base md:text-lg leading-relaxed max-w-xl mx-auto">
-                        Answer a few questions so Gemini 2.5 Pro can build your personalized roadmap.
+                        Answer a few questions to build your personalized roadmap.
                       </p>
                     </div>
 
@@ -300,7 +300,7 @@ const App: React.FC = () => {
       <footer className="py-6 mt-auto">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-xs text-slate-400 font-medium">
-            Powered by Gemini 2.5 Pro &middot; Made for Nigerian students
+            Made for Nigerian students
           </p>
         </div>
       </footer>
